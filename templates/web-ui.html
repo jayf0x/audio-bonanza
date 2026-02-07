@@ -1,0 +1,89 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="{{ url_for('static', filename = 'qrious.min.js') }}"></script>
+    <style>
+      body {
+        font-family: system-ui;
+        padding: 12px;
+        background: #111;
+        color: #eee;
+      }
+      .tab {
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+        background: #1c1c1c;
+      }
+      button {
+        font-size: 16px;
+        padding: 10px 14px;
+        margin-right: 8px;
+        border-radius: 10px;
+        border: none;
+      }
+      .play {
+        background: #2ecc71;
+      }
+      .pause {
+        background: #e67e22;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main" />
+    <br />
+    <img id="qr_link" />
+
+    <script type="text/javascript">
+        const evt = new EventSource("/tab-events");
+
+        evt.onmessage = (e) => {
+            const msg = JSON.parse(e.data);
+            if (msg.type === "tabs") renderTabs(msg.tabs);
+        };
+
+        function renderTabs(tabs) {
+            const root = document.getElementById("main")
+            document.querySelectorAll(".tab").forEach((t) => t.remove());
+
+            tabs.forEach((tab) => {
+                const el = document.createElement("div");
+                el.className = "tab";
+
+                const playing = tab.audible && !tab.muted;
+                const status = tab.muted ? "🤫" : playing ? "🔊" : "⏸️";
+
+                el.innerHTML = `
+                <div>${status} ${tab.title}</div><br>
+                <button class="play" ${playing ? "disabled" : ""} onclick="send('${tab.id}','play')">Play</button>
+                <button class="pause" ${!playing ? "disabled" : ""} onclick="send('${tab.id}','pause')">Pause</button>
+                `;
+
+                root.appendChild(el);
+            });
+        }
+
+        function send(id, action) {
+            fetch("/cmd", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json", 
+                     "X-API-Token": "{{token}}"
+                },
+                body: JSON.stringify({ tabId: id, action: action }),
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const qr =   new QRious({
+                element: document.getElementById("qr_link"),
+                size: 250,
+                value: location.origin + "?token={{ token }}",
+            });
+        }, false);
+
+
+    </script>
+  </body>
+</html>

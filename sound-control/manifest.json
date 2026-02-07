@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Local Sound Control",
+  "version": "0.3",
+  "permissions": ["tabs", "scripting"],
+  "host_permissions": ["http://localhost:5055/*", "https://www.youtube.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
