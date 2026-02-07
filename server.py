@@ -4,11 +4,10 @@ import time
 import secrets
 
 
-
-HOST = "0.0.0.0"
-PORT = 5055
 # Leave empty for party
 WEB_TOKEN = f"token_{secrets.token_urlsafe(16)}"
+
+
 
 TABS = [] # list of tabs we want to control
 SUBSCRIBERS = [] # subscribed background.js processes 
@@ -25,17 +24,33 @@ def ui():
 
 # --------------- SECURITY ----------------
 
-def require_web_token():
-    if WEB_TOKEN:
-      token = request.headers.get("X-API-Token")
-      if token != WEB_TOKEN:
-          abort(403)
+def require_token():
+    if WEB_TOKEN and request.headers.get("X-API-Token") != WEB_TOKEN:
+        print('Err: invalid token requested', request.headers.get("X-API-Token"))
+        abort(403)
+
+def require_local():
+    # TODO: Want to verify extension and want to 
+    # we could store the local extension ID and then use it to verify the extension 
+    # host = request.environ.get('HTTP_HOST', None)
+    # host = request.environ.get('HTTP_ORIGIN', None)
+
+    # origin = request.environ.get('HTTP_ORIGIN', 'default value')
+    # chrome-extension://
+    
+    # print(request.environ.get('HTTP_ORIGIN', 'default value'))
+    # could use a cookie.. ubt that's overkill
+    # if request.remote_addr not in ("127.0.0.1", "::1"):
+    #     print('Err: denied remote:', request.remote_addr)
+    #     abort(403)
+    return 'OK'
 
 
 # --------------- TAB UPDATES ----------------
 
 @app.route("/tabs", methods=["POST"])
 def update_tabs():
+    require_local()
     global TABS
     TABS = request.json
 
@@ -45,11 +60,11 @@ def update_tabs():
 
     return "OK"
 
-# --------------- COMMAND PUSH (SSE) ----------------
+# --------------- COMMAND PUSH (SSE) - LAN ROUTES ----------------
 
 @app.route("/cmd", methods=["POST"])
 def cmd():
-    require_web_token()
+    require_token()
     data = request.json
     msg = json.dumps(data)
     for q in SUBSCRIBERS:
@@ -58,6 +73,7 @@ def cmd():
 
 @app.route("/events")
 def events():
+    require_local()
     def stream():
         q = []
         SUBSCRIBERS.append(q)
@@ -72,11 +88,12 @@ def events():
     return Response(stream(), mimetype="text/event-stream")
 
 
-# --------------- TABS PUSH (SSE) ----------------
+# --------------- TABS PUSH (SSE) - LOCAL ROUTES ----------------
+
 
 @app.route("/tab-events")
 def tab_events():
-    require_web_token()
+    require_local()
     
     def stream():
         q = []
@@ -97,4 +114,5 @@ def tab_events():
 # ---------------- START ----------------
 
 if __name__ == "__main__":
+    # note: changing port requires update in the extension as well.
     app.run(host="0.0.0.0", port=5055, threaded=True)

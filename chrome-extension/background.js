@@ -1,4 +1,5 @@
 const SERVER = "http://localhost:5055";
+
 // note: other apps, might need other logic.
 const SUPPORTED_APPS = ["youtube"].map((app) => `*://*.${app}.com/*`);
 
@@ -10,7 +11,7 @@ async function collectTabs() {
       status: "complete",
       windowType: "normal",
     })
-    /* Type of tab:
+    /* Type:
     {
       active: boolean,
       audible: boolean,
@@ -24,12 +25,14 @@ async function collectTabs() {
       ...
     }
     */
-    .map((tab) => ({
-      id: tab.id,
-      title: tab.title,
-      paused: !tab.audible,
-      muted: !!tab.mutedInfo?.muted
-    }));
+    .then((tabs) =>
+      tabs.map((tab) => ({
+        id: tab.id,
+        title: tab.title,
+        paused: !tab.audible,
+        muted: !!tab.mutedInfo?.muted,
+      })),
+    );
 
   fetch(`${SERVER}/tabs`, {
     method: "POST",
@@ -38,17 +41,19 @@ async function collectTabs() {
   });
 }
 
+function tabAction(action) {
+  const v = document.querySelector("video");
+  if (!v) return console.error("No video found to set to:", action);
+
+  action === "play" ? v.play() : v.pause();
+  // Add logic here for fine grained action control
+}
+
 // Execute action immediately
 function controlTab(tabId, action) {
   chrome.scripting.executeScript({
     target: { tabId: Number(tabId) },
-    func: (act) => {
-      // Add logic here for finegrained action control per app
-      const v = document.querySelector("video");
-      if (!v) return console.error("No video found to set to:", action);
-
-      act === "play" ? v.play() : v.pause();
-    },
+    func: tabAction,
     args: [action],
   });
 }
