@@ -4,8 +4,15 @@ import time
 import secrets
 
 
-# Leave empty for party
+
 WEB_TOKEN = f"token_{secrets.token_urlsafe(16)}"
+
+# todo: replace WEB_TOKEN with this functionality + QR codes.
+ACCESS = {
+    "admin": f"token_{secrets.token_urlsafe(16)}",
+    "basic": f"token_{secrets.token_urlsafe(16)}",
+    "advanced": f"token_{secrets.token_urlsafe(16)}",
+}
 
 
 
@@ -29,7 +36,6 @@ def require_token():
         print('Err: invalid token requested', request.headers.get("X-API-Token"))
         abort(403)
 
-def require_local():
     # TODO: Want to verify extension and want to 
     # we could store the local extension ID and then use it to verify the extension 
     # host = request.environ.get('HTTP_HOST', None)
@@ -46,11 +52,13 @@ def require_local():
     return 'OK'
 
 
+
+
 # --------------- TAB UPDATES ----------------
 
 @app.route("/tabs", methods=["POST"])
 def update_tabs():
-    require_local()
+    # todo: validate tabs response
     global TABS
     TABS = request.json
 
@@ -73,7 +81,6 @@ def cmd():
 
 @app.route("/events")
 def events():
-    require_local()
     def stream():
         q = []
         SUBSCRIBERS.append(q)
@@ -93,8 +100,6 @@ def events():
 
 @app.route("/tab-events")
 def tab_events():
-    require_local()
-    
     def stream():
         q = []
         TAB_SUBSCRIBERS.append(q)
