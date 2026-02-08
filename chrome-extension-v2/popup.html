@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio Remix</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div>
+        <div class="title">Audio Remix</div>
+        <div class="subtitle">Realtime audio effects</div>
+      </div>
+      <div class="badge">v2</div>
+    </header>
+
+    <div id="status" class="status status--hidden"></div>
+
+    <section class="section" style="--delay: 80ms">
+      <div class="section-title">Presets</div>
+      <div class="preset-grid">
+        <button class="preset-btn" data-preset="slowedandreverb">Slowed + Reverb</button>
+        <button class="preset-btn" data-preset="nightcore">Nightcore</button>
+        <button class="preset-btn" data-preset="off">Off</button>
+      </div>
+    </section>
+
+    <section class="section" style="--delay: 140ms">
+      <div class="section-title">Controls</div>
+
+      <div class="control">
+        <div class="control-label-row">
+          <span class="control-label">Speed</span>
+          <span class="control-range">0.50–1.50x</span>
+        </div>
+        <div class="control-input-row">
+          <input
+            type="range"
+            id="playback-rate"
+            min="0.5"
+            max="1.5"
+            step="any"
+            value="0.8"
+          />
+          <span class="control-value" id="playback-rate-value">0.80x</span>
+        </div>
+      </div>
+
+      <div class="control">
+        <div class="control-label-row">
+          <span class="control-label">Reverb</span>
+          <span class="control-range">0–100%</span>
+        </div>
+        <div class="control-input-row">
+          <input
+            type="range"
+            id="reverb-wet-mix"
+            min="0"
+            max="1"
+            step="any"
+            value="0.4"
+          />
+          <span class="control-value" id="reverb-wet-mix-value">40%</span>
+        </div>
+      </div>
+
+      <div class="control">
+        <div class="control-label-row">
+          <span class="control-label">Bass Boost</span>
+          <span class="control-range">0–10 dB</span>
+        </div>
+        <div class="control-input-row">
+          <input
+            type="range"
+            id="low-band-decibels"
+            min="0"
+            max="10"
+            step="any"
+            value="0"
+          />
+          <span class="control-value" id="low-band-decibels-value">0.0 dB</span>
+        </div>
+      </div>
+
+      <label class="toggle" for="preserve-pitch">
+        <input type="checkbox" id="preserve-pitch" />
+        <span class="toggle-track">
+          <span class="toggle-thumb"></span>
+        </span>
+        <span class="toggle-text">Preserve Pitch</span>
+      </label>
+    </section>
+  </div>
+
+  <script src="./popup.js"></script>
+</body>
+</html>
