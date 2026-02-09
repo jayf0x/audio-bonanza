@@ -1,10 +1,27 @@
-# Audio Bonanza
+# Audio Bonanza - Extension & LAN server
 
-![Audio Bonanza Extension Banner](audio-bonanza-extension/assets/favicon-512x512.png)
+<style>
+  body {
+  background: #000000;
+  background: linear-gradient(
+    135deg,
+    #0a0e1f77 0%,
+    #120d2e77 30%,
+    #1a1a3d77 60%,
+    #002a3a77 100%
+  );
+  color: #e0f0ff;
+  min-height: 100vh;
+}
+</style>
 
-**Audio Bonanza** is a Chrome extension for advanced per-tab audio control (speed, reverb, bass, pitch) that works entirely on its own.
 
-The **LAN server** is optional. It only provides a small web UI to remotely send **play/pause** to tabs on the same machine.
+<img src="audio-bonanza-extension/assets/fancy.jpg" style="width: 50%"/>
+
+
+**Audio Bonanza** is a **totally free** Chrome extension for **fun** audio control (speed, reverb, bass, pitch).
+
+The **LAN server** is optional and provides a UI to remotely send **play/pause** to tabs on the machine running it (with the extension enabled).
 
 ## Extension (primary)
 
@@ -48,3 +65,6 @@ sequenceDiagram
   Ext-->>Server: POST /tabs (tab list updates)
   Server-->>UI: SSE /tab-events (tabs)
 ```
+
+## Roadmap
+** silence **
