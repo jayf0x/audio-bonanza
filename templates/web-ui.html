@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="UTF-8" />
-    <script src="{{ url_for('static', filename = 'qrious.min.js') }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="{{ url_for('static', filename='qrious.min.js') }}"></script>
     <style>
       :root {
         color-scheme: dark;
-        --bg-0: #0b0f14;
-        --bg-1: #121821;
-        --surface: #151c26;
-        --surface-2: #1b2431;
-        --border: rgba(255, 255, 255, 0.08);
-        --text: #e7eef7;
-        --muted: #9fb0c3;
+        --bg: #0f141b;
+        --panel: #161f2a;
+        --panel-2: #1c2735;
+        --text: #eef4ff;
+        --muted: #9fb2c8;
         --accent: #4dd8c8;
-        --accent-2: #88f7b1;
-        --warn: #ffc0a8;
-        --warn-bg: rgba(255, 133, 102, 0.12);
-        --shadow: rgba(0, 0, 0, 0.35);
+        --warn: #ff8966;
+        --border: rgba(255, 255, 255, 0.08);
       }
 
       * {
@@ -30,385 +26,36 @@
       body {
         font-family: "Avenir Next", "Avenir", "Futura", "Trebuchet MS", sans-serif;
         background: radial-gradient(circle at top, rgba(77, 216, 200, 0.12), transparent 55%),
-          linear-gradient(160deg, var(--bg-0), var(--bg-1));
+          linear-gradient(160deg, #0b0f14, var(--bg));
         color: var(--text);
         min-height: 100vh;
-        padding: 18px;
+        padding: 20px;
       }
 
       .page {
-        max-width: 1120px;
+        max-width: 920px;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
       }
 
       header {
         display: flex;
-        align-items: flex-end;
         justify-content: space-between;
         gap: 16px;
+        align-items: flex-end;
       }
 
       .title {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 600;
       }
 
       .subtitle {
-        color: var(--muted);
-        font-size: 11px;
-      }
-
-      .search-wrap {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        align-items: flex-end;
-      }
-
-      .search-label {
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--muted);
-      }
-
-      .search-input {
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        color: var(--text);
-        padding: 6px 10px;
         font-size: 12px;
-        width: 220px;
-      }
-
-      .table {
-        --grid: 240px 150px 130px 170px 170px 170px 80px;
-        background: linear-gradient(150deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        box-shadow: 0 18px 32px var(--shadow);
-        overflow: hidden;
-        width: 100%;
-      }
-
-      .row {
-        display: grid;
-        grid-template-columns: var(--grid);
-        gap: 10px;
-        align-items: center;
-        padding: 8px 12px;
-        border-bottom: 1px solid var(--border);
-      }
-
-      .row.head {
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
         color: var(--muted);
-        background: rgba(255, 255, 255, 0.02);
-      }
-
-      .row:last-child {
-        border-bottom: none;
-      }
-
-      .cell {
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .cell-title {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .title-text {
-        font-size: 12px;
-        font-weight: 600;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .cell-host {
-        font-size: 11px;
-        color: var(--muted);
-      }
-
-      .status-chip {
-        font-size: 9px;
-        padding: 2px 6px;
-        border-radius: 999px;
-        background: rgba(77, 216, 200, 0.12);
-        color: var(--accent);
-        border: 1px solid rgba(77, 216, 200, 0.35);
-        width: fit-content;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-      }
-
-      .status-chip.muted {
-        background: var(--warn-bg);
-        border-color: rgba(255, 133, 102, 0.45);
-        color: var(--warn);
-      }
-
-      .actions {
-        display: flex;
-        gap: 6px;
-      }
-
-      .btn {
-        flex: 1;
-        border-radius: 8px;
-        border: 1px solid transparent;
-        padding: 6px 8px;
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        background: var(--surface);
-        color: var(--text);
-        cursor: pointer;
-        transition: transform 120ms ease, border-color 120ms ease;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .btn:hover {
-        transform: translateY(-1px);
-        border-color: rgba(77, 216, 200, 0.35);
-      }
-
-      .btn.play {
-        background: rgba(77, 216, 200, 0.18);
-        border-color: rgba(77, 216, 200, 0.35);
-        color: var(--accent-2);
-      }
-
-      .btn.pause {
-        background: rgba(255, 133, 102, 0.18);
-        border-color: rgba(255, 133, 102, 0.35);
-        color: var(--warn);
-      }
-
-      .btn[disabled],
-      .btn.is-loading {
-        opacity: 0.7;
-        cursor: progress;
-        transform: none;
-      }
-
-      .btn.is-loading::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.02));
-        animation: pulse 1.2s ease-in-out infinite;
-      }
-
-      .control {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .control input[type='range'] {
-        flex: 1;
-        -webkit-appearance: none;
-        appearance: none;
-        height: 6px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, rgba(77, 216, 200, 0.4), rgba(77, 216, 200, 0.1));
-        outline: none;
-      }
-
-      .control input[type='range']::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: var(--accent);
-        border: 2px solid #0b1415;
-        box-shadow: 0 0 0 4px rgba(77, 216, 200, 0.2);
-      }
-
-      .control input[type='range']::-moz-range-thumb {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: var(--accent);
-        border: 2px solid #0b1415;
-        box-shadow: 0 0 0 4px rgba(77, 216, 200, 0.2);
-      }
-
-      .control input[type='range']::-moz-range-track {
-        background: linear-gradient(90deg, rgba(77, 216, 200, 0.4), rgba(77, 216, 200, 0.1));
-        height: 6px;
-        border-radius: 999px;
-      }
-
-      .value {
-        min-width: 46px;
-        text-align: right;
-        font-size: 11px;
-        color: var(--accent-2);
-      }
-
-      .toggle {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .toggle input {
-        display: none;
-      }
-
-      .toggle-track {
-        width: 30px;
-        height: 16px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid var(--border);
-        position: relative;
-        transition: background 140ms ease;
-      }
-
-      .toggle-thumb {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: var(--muted);
-        position: absolute;
-        top: 2px;
-        left: 3px;
-        transition: transform 140ms ease, background 140ms ease;
-      }
-
-      .toggle input:checked + .toggle-track {
-        background: rgba(77, 216, 200, 0.2);
-        border-color: rgba(77, 216, 200, 0.4);
-      }
-
-      .toggle input:checked + .toggle-track .toggle-thumb {
-        transform: translateX(12px);
-        background: var(--accent);
-      }
-
-      .resize-handle {
-        position: absolute;
-        right: -6px;
-        top: 0;
-        height: 100%;
-        width: 12px;
-        cursor: col-resize;
-      }
-
-      .header-cell {
-        position: relative;
-        padding-right: 8px;
-        min-width: 0;
-      }
-
-      .mobile-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .mobile-row {
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        background: rgba(21, 28, 38, 0.9);
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .mobile-header {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-      }
-
-      .mobile-title {
-        font-size: 13px;
-        font-weight: 600;
-      }
-
-      .mobile-host {
-        font-size: 11px;
-        color: var(--muted);
-      }
-
-      .mobile-actions {
-        display: flex;
-        gap: 8px;
-      }
-
-      .stepper {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        background: var(--surface-2);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 8px 10px;
-      }
-
-      .stepper-label {
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.7px;
-        color: var(--muted);
-      }
-
-      .stepper-controls {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .stepper-btn {
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        color: var(--text);
-        font-size: 16px;
-      }
-
-      .stepper-btn:disabled {
-        opacity: 0.4;
-      }
-
-      .stepper-level {
-        font-size: 11px;
-        color: var(--accent-2);
-        min-width: 38px;
-        text-align: center;
-      }
-
-      .stepper-value {
-        margin-left: auto;
-        font-size: 11px;
-        color: var(--text);
-      }
-
-      footer {
-        display: flex;
-        justify-content: center;
-        padding-top: 6px;
+        margin-top: 4px;
       }
 
       .qr-wrap {
@@ -421,74 +68,158 @@
       }
 
       #qr_link {
-        width: 180px;
-        height: 180px;
+        width: 140px;
+        height: 140px;
         border-radius: 12px;
         border: 1px solid var(--border);
-        background: var(--surface);
+        background: var(--panel);
       }
 
-      @keyframes pulse {
-        0% {
-          opacity: 0.1;
-        }
-        50% {
-          opacity: 0.35;
-        }
-        100% {
-          opacity: 0.1;
-        }
+      .tabs {
+        display: grid;
+        gap: 12px;
       }
 
-      @media (max-width: 900px) {
+      .tab-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px 16px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 14px;
+      }
+
+      .tab-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .tab-title {
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .tab-host {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .status {
+        font-size: 10px;
+        letter-spacing: 0.7px;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(77, 216, 200, 0.35);
+        color: var(--accent);
+        width: fit-content;
+      }
+
+      .status.muted {
+        border-color: rgba(255, 137, 102, 0.45);
+        color: var(--warn);
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 140px;
+      }
+
+      .btn {
+        border-radius: 10px;
+        border: 1px solid transparent;
+        padding: 8px 10px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        background: var(--panel-2);
+        color: var(--text);
+        cursor: pointer;
+        transition: transform 120ms ease, border-color 120ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        border-color: rgba(77, 216, 200, 0.35);
+      }
+
+      .btn.play {
+        background: rgba(77, 216, 200, 0.18);
+        color: #7cf3de;
+      }
+
+      .btn.pause {
+        background: rgba(255, 137, 102, 0.18);
+        color: var(--warn);
+      }
+
+      .btn[disabled] {
+        opacity: 0.55;
+        cursor: default;
+        transform: none;
+      }
+
+      .empty {
+        padding: 24px;
+        border-radius: 14px;
+        border: 1px dashed var(--border);
+        color: var(--muted);
+        text-align: center;
+        background: rgba(21, 28, 38, 0.5);
+      }
+
+      @media (max-width: 720px) {
         header {
           flex-direction: column;
           align-items: flex-start;
         }
 
-        .search-wrap {
-          width: 100%;
-          align-items: flex-start;
+        .tab-card {
+          grid-template-columns: 1fr;
         }
 
-        .search-input {
-          width: 100%;
+        .actions {
+          flex-direction: row;
+          min-width: 0;
+        }
+
+        .btn {
+          flex: 1;
         }
       }
     </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div class="page">
+      <header>
+        <div>
+          <div class="title">Audio Bonanza Remote</div>
+          <div class="subtitle">Play or pause tabs on this machine.</div>
+        </div>
+        <div class="qr-wrap">
+          <span>Open on another device</span>
+          <img id="qr_link" alt="QR code" />
+        </div>
+      </header>
 
-    <script type="module">
-      import { h, render } from "https://esm.sh/preact@10.28.3/es2022/preact.mjs";
-      import { useEffect, useMemo, useRef, useState } from "https://esm.sh/preact@10.28.3/es2022/hooks.mjs";
-      import htm from "https://esm.sh/htm@3.1.1";
+      <div id="tabs" class="tabs"></div>
+      <div id="empty" class="empty" hidden>No controllable tabs yet.</div>
+    </div>
 
-      const html = htm.bind(h);
-
-      const DEFAULT_STATE = {
-        playbackRate: 0.8,
-        reverbWetMix: 0.4,
-        lowBandDecibels: 0,
-        preservesPitch: false,
-      };
-
-      const SEARCH_KEY = "audioRemixSearch";
-      const COLS_KEY = "audioRemixColumns";
-      const DEFAULT_COLS = [240, 150, 130, 170, 170, 170, 80];
-
-      function useMediaQuery(query) {
-        const [matches, setMatches] = useState(window.matchMedia(query).matches);
-        useEffect(() => {
-          const media = window.matchMedia(query);
-          const handler = () => setMatches(media.matches);
-          handler();
-          media.addEventListener("change", handler);
-          return () => media.removeEventListener("change", handler);
-        }, [query]);
-        return matches;
-      }
+    <script>
+      const token = "{{ token }}";
+      const tabsEl = document.getElementById("tabs");
+      const emptyEl = document.getElementById("empty");
+      const pending = new Map();
+      let lastTabs = [];
 
       function getHost(url) {
         if (!url) return "";
@@ -499,584 +230,123 @@
         }
       }
 
-      function clamp(value, min, max) {
-        return Math.min(Math.max(value, min), max);
+      function getStatus(tab) {
+        if (tab.muted) {
+          return { label: "Muted", className: "status muted" };
+        }
+        if (tab.audible) {
+          return { label: "Playing", className: "status" };
+        }
+        return { label: "Paused", className: "status" };
       }
 
-      function formatPlayback(value) {
-        return `${value.toFixed(2)}x`;
+      function sendCommand(tabId, action) {
+        return fetch("/cmd", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Token": token,
+          },
+          body: JSON.stringify({ tabId, action }),
+        });
       }
 
-      function formatReverb(value) {
-        return `${Math.round(value * 100)}%`;
-      }
+      function queueAction(tabId, action) {
+        pending.set(tabId, action);
+        renderTabs(lastTabs);
 
-      function formatBass(value) {
-        return `${value.toFixed(1)} dB`;
-      }
+        sendCommand(tabId, action).catch(() => {
+          pending.delete(tabId);
+          renderTabs(lastTabs);
+        });
 
-      function loadColumns() {
-        try {
-          const raw = sessionStorage.getItem(COLS_KEY);
-          if (!raw) return DEFAULT_COLS;
-          const parsed = JSON.parse(raw);
-          if (!Array.isArray(parsed) || parsed.length !== DEFAULT_COLS.length) {
-            return DEFAULT_COLS;
+        setTimeout(() => {
+          if (pending.get(tabId) === action) {
+            pending.delete(tabId);
+            renderTabs(lastTabs);
           }
-          return parsed.map((val, index) => clamp(Number(val) || DEFAULT_COLS[index], 90, 520));
-        } catch (error) {
-          return DEFAULT_COLS;
-        }
+        }, 2000);
       }
 
-      function stepIndex(value, min, max) {
-        const step = (max - min) / 4;
-        return clamp(Math.round((value - min) / step), 0, 4);
+      function renderTabs(tabs) {
+        tabsEl.innerHTML = "";
+        emptyEl.hidden = tabs.length > 0;
+
+        tabs.forEach((tab) => {
+          const card = document.createElement("div");
+          card.className = "tab-card";
+
+          const meta = document.createElement("div");
+          meta.className = "tab-meta";
+
+          const title = document.createElement("div");
+          title.className = "tab-title";
+          title.textContent = tab.title || "Untitled Tab";
+          title.title = tab.title || "Untitled Tab";
+
+          const host = document.createElement("div");
+          host.className = "tab-host";
+          host.textContent = getHost(tab.url);
+          host.title = tab.url || "";
+
+          const status = document.createElement("div");
+          const statusInfo = getStatus(tab);
+          status.className = statusInfo.className;
+          status.textContent = statusInfo.label;
+
+          meta.appendChild(title);
+          meta.appendChild(host);
+          meta.appendChild(status);
+
+          const actions = document.createElement("div");
+          actions.className = "actions";
+
+          const isPlaying = tab.audible && !tab.muted;
+          const pendingAction = pending.get(tab.id);
+
+          const playBtn = document.createElement("button");
+          playBtn.className = "btn play";
+          playBtn.textContent = "Play";
+          playBtn.disabled = isPlaying || pendingAction === "play";
+          playBtn.addEventListener("click", () => queueAction(tab.id, "play"));
+
+          const pauseBtn = document.createElement("button");
+          pauseBtn.className = "btn pause";
+          pauseBtn.textContent = "Pause";
+          pauseBtn.disabled = !isPlaying || pendingAction === "pause";
+          pauseBtn.addEventListener("click", () => queueAction(tab.id, "pause"));
+
+          actions.appendChild(playBtn);
+          actions.appendChild(pauseBtn);
+
+          card.appendChild(meta);
+          card.appendChild(actions);
+          tabsEl.appendChild(card);
+        });
       }
 
-      function stepValue(index, min, max) {
-        const step = (max - min) / 4;
-        return min + step * index;
+      function connectTabsStream() {
+        const evt = new EventSource("/tab-events");
+        evt.onmessage = (event) => {
+          const msg = JSON.parse(event.data);
+          if (msg.type === "tabs") {
+            lastTabs = Array.isArray(msg.tabs) ? msg.tabs : [];
+            renderTabs(lastTabs);
+          }
+        };
+        evt.onerror = () => {
+          evt.close();
+          setTimeout(connectTabsStream, 1500);
+        };
       }
 
-      function App() {
-        const isMobile = useMediaQuery("(max-width: 720px)");
-        const [tabsState, setTabsState] = useState({ order: [], byId: {} });
-        const [audioById, setAudioById] = useState({});
-        const [loadingById, setLoadingById] = useState({});
-        const [pendingById, setPendingById] = useState({});
-        const [search, setSearch] = useState(sessionStorage.getItem(SEARCH_KEY) || "");
-        const [colWidths, setColWidths] = useState(loadColumns);
+      new QRious({
+        element: document.getElementById("qr_link"),
+        size: 140,
+        value: location.origin + "?token={{ token }}",
+      });
 
-        const audioRef = useRef(audioById);
-        const pendingRef = useRef(pendingById);
-        const debounceTimers = useRef(new Map());
-        const actionTimers = useRef(new Map());
-        const actionTimeouts = useRef(new Map());
-        const dragRef = useRef(null);
-        const colRef = useRef(colWidths);
-
-        useEffect(() => {
-          audioRef.current = audioById;
-        }, [audioById]);
-
-        useEffect(() => {
-          pendingRef.current = pendingById;
-        }, [pendingById]);
-
-        useEffect(() => {
-          colRef.current = colWidths;
-          sessionStorage.setItem(COLS_KEY, JSON.stringify(colWidths));
-        }, [colWidths]);
-
-        useEffect(() => {
-          sessionStorage.setItem(SEARCH_KEY, search);
-        }, [search]);
-
-        useEffect(() => {
-          const evt = new EventSource("/tab-events");
-          evt.onmessage = (e) => {
-            const msg = JSON.parse(e.data);
-            if (msg.type === "tabs") {
-              updateTabs(msg.tabs || []);
-            }
-          };
-          return () => evt.close();
-        }, []);
-
-        useEffect(() => {
-          new QRious({
-            element: document.getElementById("qr_link"),
-            size: 180,
-            value: location.origin + "?token={{ token }}",
-          });
-        }, []);
-
-        function updateTabs(tabs) {
-          setTabsState((prev) => {
-            const nextById = {};
-            const nextOrder = [];
-
-            tabs.forEach((tab) => {
-              const prevTab = prev.byId[tab.id];
-              const host = getHost(tab.url);
-              const title = tab.title || "Untitled Tab";
-              const audible = !!tab.audible;
-              const muted = !!tab.muted;
-
-              const isSame =
-                prevTab &&
-                prevTab.title === title &&
-                prevTab.url === tab.url &&
-                prevTab.audible === audible &&
-                prevTab.muted === muted;
-
-              nextById[tab.id] = isSame
-                ? prevTab
-                : {
-                    id: tab.id,
-                    title,
-                    url: tab.url,
-                    host,
-                    audible,
-                    muted,
-                  };
-              nextOrder.push(tab.id);
-            });
-
-            return { order: nextOrder, byId: nextById };
-          });
-
-          setAudioById((prev) => {
-            const next = { ...prev };
-            const activeIds = new Set(tabs.map((tab) => tab.id));
-            tabs.forEach((tab) => {
-              if (!next[tab.id]) {
-                next[tab.id] = { ...DEFAULT_STATE };
-              }
-            });
-            Object.keys(next).forEach((id) => {
-              if (!activeIds.has(Number(id))) {
-                delete next[id];
-              }
-            });
-            return next;
-          });
-
-          const resolved = [];
-          tabs.forEach((tab) => {
-            const pending = pendingRef.current[tab.id];
-            if (!pending) return;
-            const isPlaying = tab.audible && !tab.muted;
-            if (pending === "play" && isPlaying) {
-              resolved.push({ tabId: tab.id, action: pending });
-            }
-            if (pending === "pause" && !isPlaying) {
-              resolved.push({ tabId: tab.id, action: pending });
-            }
-          });
-
-          if (resolved.length) {
-            setPendingById((prev) => {
-              const next = { ...prev };
-              resolved.forEach(({ tabId, action }) => {
-                if (next[tabId] === action) {
-                  delete next[tabId];
-                }
-              });
-              return next;
-            });
-
-            setLoadingById((prev) => {
-              const next = { ...prev };
-              resolved.forEach(({ tabId, action }) => {
-                if (next[tabId]) {
-                  next[tabId] = { ...next[tabId], [action]: false };
-                }
-                const timeout = actionTimeouts.current.get(tabId);
-                if (timeout) {
-                  clearTimeout(timeout);
-                  actionTimeouts.current.delete(tabId);
-                }
-              });
-              return next;
-            });
-          }
-
-          setLoadingById((prev) => {
-            const next = { ...prev };
-            const activeIds = new Set(tabs.map((tab) => tab.id));
-            Object.keys(next).forEach((id) => {
-              if (!activeIds.has(Number(id))) {
-                delete next[id];
-              }
-            });
-            return next;
-          });
-        }
-
-        function sendCommand(id, action, extra = {}) {
-          return fetch("/cmd", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-API-Token": "{{token}}",
-            },
-            body: JSON.stringify({ tabId: id, action, ...extra }),
-          });
-        }
-
-        function queueStateUpdate(tabId) {
-          const timers = debounceTimers.current;
-          if (timers.has(tabId)) {
-            clearTimeout(timers.get(tabId));
-          }
-          timers.set(
-            tabId,
-            setTimeout(() => {
-              timers.delete(tabId);
-              const state = audioRef.current[tabId];
-              if (state) {
-                sendCommand(tabId, "setAudio", { state });
-              }
-            }, 200)
-          );
-        }
-
-        function updateStateValue(tabId, key, value) {
-          setAudioById((prev) => ({
-            ...prev,
-            [tabId]: {
-              ...(prev[tabId] || DEFAULT_STATE),
-              [key]: value,
-            },
-          }));
-          queueStateUpdate(tabId);
-        }
-
-        function setLoading(tabId, action, value) {
-          setLoadingById((prev) => ({
-            ...prev,
-            [tabId]: { ...prev[tabId], [action]: value },
-          }));
-        }
-
-        function queueAction(tabId, action) {
-          setPendingById((prev) => ({ ...prev, [tabId]: action }));
-          setLoading(tabId, action, true);
-
-          if (actionTimeouts.current.has(tabId)) {
-            clearTimeout(actionTimeouts.current.get(tabId));
-          }
-          actionTimeouts.current.set(
-            tabId,
-            setTimeout(() => {
-              setLoading(tabId, action, false);
-              setPendingById((prev) => {
-                const next = { ...prev };
-                if (next[tabId] === action) {
-                  delete next[tabId];
-                }
-                return next;
-              });
-            }, 2500)
-          );
-
-          const timers = actionTimers.current;
-          if (timers.has(tabId)) {
-            clearTimeout(timers.get(tabId));
-          }
-          timers.set(
-            tabId,
-            setTimeout(() => {
-              timers.delete(tabId);
-              sendCommand(tabId, action).catch(() => {
-                setLoading(tabId, action, false);
-              });
-            }, 160)
-          );
-        }
-
-        function handleResizeStart(index, event) {
-          event.preventDefault();
-          dragRef.current = {
-            index,
-            startX: event.clientX,
-            startWidth: colRef.current[index],
-          };
-          window.addEventListener("pointermove", handleResizeMove);
-          window.addEventListener("pointerup", handleResizeEnd);
-        }
-
-        function handleResizeMove(event) {
-          if (!dragRef.current) return;
-          const { index, startX, startWidth } = dragRef.current;
-          const delta = event.clientX - startX;
-          setColWidths((prev) => {
-            const next = [...prev];
-            next[index] = clamp(startWidth + delta, 90, 520);
-            return next;
-          });
-        }
-
-        function handleResizeEnd() {
-          dragRef.current = null;
-          window.removeEventListener("pointermove", handleResizeMove);
-          window.removeEventListener("pointerup", handleResizeEnd);
-        }
-
-        function adjustStep(tabId, key, direction, min, max) {
-          const state = audioRef.current[tabId] || DEFAULT_STATE;
-          const current = state[key] ?? DEFAULT_STATE[key];
-          const idx = stepIndex(current, min, max);
-          const nextIndex = clamp(idx + direction, 0, 4);
-          const nextValue = stepValue(nextIndex, min, max);
-          updateStateValue(tabId, key, nextValue);
-        }
-
-        const gridTemplate = useMemo(
-          () => colWidths.map((width) => `${width}px`).join(" "),
-          [colWidths]
-        );
-
-        const filteredOrder = useMemo(() => {
-          const query = search.trim().toLowerCase();
-          if (!query) return tabsState.order;
-          return tabsState.order.filter((id) => {
-            const tab = tabsState.byId[id];
-            if (!tab) return false;
-            return tab.title.toLowerCase().includes(query) || tab.host.toLowerCase().includes(query);
-          });
-        }, [search, tabsState]);
-
-        return html`
-          <div class="page">
-            <header>
-              <div>
-                <div class="title">Audio Remix Control</div>
-                <div class="subtitle">Control playback and effects per tab</div>
-              </div>
-              <div class="search-wrap">
-                <span class="search-label">Search tabs</span>
-                <input
-                  class="search-input"
-                  value=${search}
-                  onInput=${(e) => setSearch(e.target.value)}
-                  placeholder="Title or host"
-                />
-              </div>
-            </header>
-
-            ${isMobile
-              ? html`
-                  <div class="mobile-list">
-                    ${filteredOrder.map((id) => {
-                      const tab = tabsState.byId[id];
-                      if (!tab) return null;
-                      const state = audioById[id] || DEFAULT_STATE;
-                      const loading = loadingById[id] || {};
-                      const isPlaying = tab.audible && !tab.muted;
-                      const statusLabel = tab.muted ? "Muted" : isPlaying ? "Playing" : "Paused";
-
-                      return html`
-                        <div class="mobile-row" key=${tab.id}>
-                          <div class="mobile-header">
-                            <div>
-                              <div class="mobile-title" title=${tab.title}>${tab.title}</div>
-                              <div class="mobile-host" title=${tab.host}>${tab.host}</div>
-                            </div>
-                            <span class=${"status-chip" + (tab.muted ? " muted" : "")}>${statusLabel}</span>
-                          </div>
-                          <div class="mobile-actions">
-                            <button
-                              class=${"btn play" + (loading.play ? " is-loading" : "")}
-                              disabled=${isPlaying || loading.play}
-                              onClick=${() => queueAction(tab.id, "play")}
-                            >
-                              Play
-                            </button>
-                            <button
-                              class=${"btn pause" + (loading.pause ? " is-loading" : "")}
-                              disabled=${!isPlaying || loading.pause}
-                              onClick=${() => queueAction(tab.id, "pause")}
-                            >
-                              Pause
-                            </button>
-                          </div>
-                          <div class="stepper">
-                            <div class="stepper-label">Speed</div>
-                            <div class="stepper-controls">
-                              <button
-                                class="stepper-btn"
-                                onClick=${() => adjustStep(tab.id, "playbackRate", -1, 0.5, 1.5)}
-                                disabled=${stepIndex(state.playbackRate, 0.5, 1.5) === 0}
-                              >
-                                −
-                              </button>
-                              <span class="stepper-level">${stepIndex(state.playbackRate, 0.5, 1.5) + 1}/5</span>
-                              <button
-                                class="stepper-btn"
-                                onClick=${() => adjustStep(tab.id, "playbackRate", 1, 0.5, 1.5)}
-                                disabled=${stepIndex(state.playbackRate, 0.5, 1.5) === 4}
-                              >
-                                +
-                              </button>
-                              <span class="stepper-value">${formatPlayback(state.playbackRate)}</span>
-                            </div>
-                          </div>
-                          <div class="stepper">
-                            <div class="stepper-label">Reverb</div>
-                            <div class="stepper-controls">
-                              <button
-                                class="stepper-btn"
-                                onClick=${() => adjustStep(tab.id, "reverbWetMix", -1, 0, 1)}
-                                disabled=${stepIndex(state.reverbWetMix, 0, 1) === 0}
-                              >
-                                −
-                              </button>
-                              <span class="stepper-level">${stepIndex(state.reverbWetMix, 0, 1) + 1}/5</span>
-                              <button
-                                class="stepper-btn"
-                                onClick=${() => adjustStep(tab.id, "reverbWetMix", 1, 0, 1)}
-                                disabled=${stepIndex(state.reverbWetMix, 0, 1) === 4}
-                              >
-                                +
-                              </button>
-                              <span class="stepper-value">${formatReverb(state.reverbWetMix)}</span>
-                            </div>
-                          </div>
-                          <div class="stepper">
-                            <div class="stepper-label">Bass</div>
-                            <div class="stepper-controls">
-                              <button
-                                class="stepper-btn"
-                                onClick=${() => adjustStep(tab.id, "lowBandDecibels", -1, 0, 10)}
-                                disabled=${stepIndex(state.lowBandDecibels, 0, 10) === 0}
-                              >
-                                −
-                              </button>
-                              <span class="stepper-level">${stepIndex(state.lowBandDecibels, 0, 10) + 1}/5</span>
-                              <button
-                                class="stepper-btn"
-                                onClick=${() => adjustStep(tab.id, "lowBandDecibels", 1, 0, 10)}
-                                disabled=${stepIndex(state.lowBandDecibels, 0, 10) === 4}
-                              >
-                                +
-                              </button>
-                              <span class="stepper-value">${formatBass(state.lowBandDecibels)}</span>
-                            </div>
-                          </div>
-                          <label class="toggle">
-                            <input
-                              type="checkbox"
-                              checked=${state.preservesPitch}
-                              onChange=${(e) => updateStateValue(tab.id, "preservesPitch", e.target.checked)}
-                            />
-                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                            <span>Preserve Pitch</span>
-                          </label>
-                        </div>
-                      `;
-                    })}
-                  </div>
-                `
-              : html`
-                  <div class="table" style=${
-                    { "--grid": gridTemplate }
-                  }>
-                    <div class="row head">
-                      ${[
-                        "Tab",
-                        "Host",
-                        "Playback",
-                        "Speed",
-                        "Reverb",
-                        "Bass",
-                        "Pitch",
-                      ].map(
-                        (label, index) => html`
-                          <div class="header-cell" key=${label}>
-                            ${label}
-                            ${index < DEFAULT_COLS.length - 1
-                              ? html`<span
-                                  class="resize-handle"
-                                  onPointerDown=${(e) => handleResizeStart(index, e)}
-                                ></span>`
-                              : null}
-                          </div>`
-                      )}
-                    </div>
-                    ${filteredOrder.map((id) => {
-                      const tab = tabsState.byId[id];
-                      if (!tab) return null;
-                      const state = audioById[id] || DEFAULT_STATE;
-                      const loading = loadingById[id] || {};
-                      const isPlaying = tab.audible && !tab.muted;
-                      const statusLabel = tab.muted ? "Muted" : isPlaying ? "Playing" : "Paused";
-
-                      return html`
-                        <div class="row" key=${tab.id}>
-                          <div class="cell cell-title" title=${tab.title}>
-                            <div class="title-text">${tab.title}</div>
-                            <span class=${"status-chip" + (tab.muted ? " muted" : "")}>${statusLabel}</span>
-                          </div>
-                          <div class="cell cell-host" title=${tab.host}>${tab.host}</div>
-                          <div class="cell actions">
-                            <button
-                              class=${"btn play" + (loading.play ? " is-loading" : "")}
-                              disabled=${isPlaying || loading.play}
-                              onClick=${() => queueAction(tab.id, "play")}
-                            >
-                              Play
-                            </button>
-                            <button
-                              class=${"btn pause" + (loading.pause ? " is-loading" : "")}
-                              disabled=${!isPlaying || loading.pause}
-                              onClick=${() => queueAction(tab.id, "pause")}
-                            >
-                              Pause
-                            </button>
-                          </div>
-                          <div class="cell control">
-                            <input
-                              type="range"
-                              min="0.5"
-                              max="1.5"
-                              step="any"
-                              value=${state.playbackRate}
-                              onInput=${(e) => updateStateValue(tab.id, "playbackRate", parseFloat(e.target.value))}
-                            />
-                            <span class="value">${formatPlayback(state.playbackRate)}</span>
-                          </div>
-                          <div class="cell control">
-                            <input
-                              type="range"
-                              min="0"
-                              max="1"
-                              step="any"
-                              value=${state.reverbWetMix}
-                              onInput=${(e) => updateStateValue(tab.id, "reverbWetMix", parseFloat(e.target.value))}
-                            />
-                            <span class="value">${formatReverb(state.reverbWetMix)}</span>
-                          </div>
-                          <div class="cell control">
-                            <input
-                              type="range"
-                              min="0"
-                              max="10"
-                              step="any"
-                              value=${state.lowBandDecibels}
-                              onInput=${(e) => updateStateValue(tab.id, "lowBandDecibels", parseFloat(e.target.value))}
-                            />
-                            <span class="value">${formatBass(state.lowBandDecibels)}</span>
-                          </div>
-                          <div class="cell toggle">
-                            <label>
-                              <input
-                                type="checkbox"
-                                checked=${state.preservesPitch}
-                                onChange=${(e) => updateStateValue(tab.id, "preservesPitch", e.target.checked)}
-                              />
-                              <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                            </label>
-                          </div>
-                        </div>
-                      `;
-                    })}
-                  </div>
-                `}
-
-            <footer>
-              <div class="qr-wrap">
-                <span>Scan to open on another device</span>
-                <img id="qr_link" alt="QR code" />
-              </div>
-            </footer>
-          </div>
-        `;
-      }
-
-      render(html`<${App} />`, document.getElementById("app"));
+      connectTabsStream();
     </script>
   </body>
 </html>

@@ -3,6 +3,7 @@ import json
 import time
 import secrets
 
+# leave empty/static to make session persistent
 WEB_TOKEN = f"token_{secrets.token_urlsafe(16)}"
 
 TABS = []  # list of tabs we want to control
@@ -11,8 +12,7 @@ TAB_SUBSCRIBERS = []  # subscriptions to UI
 
 app = Flask(__name__)
 
-ALLOWED_ACTIONS = {"play", "pause", "setAudio"}
-ALLOWED_STATE_KEYS = {"playbackRate", "reverbWetMix", "lowBandDecibels", "preservesPitch"}
+ALLOWED_ACTIONS = {"play", "pause"}
 
 # ---------------- UI ----------------
 
@@ -25,22 +25,8 @@ def ui():
 
 def require_token():
     if WEB_TOKEN and request.headers.get("X-API-Token") != WEB_TOKEN:
-        print('Err: invalid token requested', request.headers.get("X-API-Token"))
+        print("Err: invalid token requested", request.headers.get("X-API-Token"))
         abort(403)
-
-    # TODO: Want to verify extension and want to
-    # we could store the local extension ID and then use it to verify the extension
-    # host = request.environ.get('HTTP_HOST', None)
-    # host = request.environ.get('HTTP_ORIGIN', None)
-
-    # origin = request.environ.get('HTTP_ORIGIN', 'default value')
-    # chrome-extension://
-
-    # print(request.environ.get('HTTP_ORIGIN', 'default value'))
-    # could use a cookie.. ubt that's overkill
-    # if request.remote_addr not in ("127.0.0.1", "::1"):
-    #     print('Err: denied remote:', request.remote_addr)
-    #     abort(403)
     return 'OK'
 
 
@@ -61,24 +47,6 @@ def update_tabs():
 
 # --------------- COMMAND PUSH (SSE) - LAN ROUTES ----------------
 
-def sanitize_state(state):
-    if not isinstance(state, dict):
-        return None
-
-    sanitized = {}
-    for key in ALLOWED_STATE_KEYS:
-        if key not in state:
-            continue
-        value = state[key]
-        if key == "preservesPitch":
-            if isinstance(value, bool):
-                sanitized[key] = value
-        elif isinstance(value, (int, float)):
-            sanitized[key] = float(value)
-
-    return sanitized
-
-
 def validate_cmd(data):
     if not isinstance(data, dict):
         return None
@@ -96,12 +64,6 @@ def validate_cmd(data):
     if action in ("play", "pause"):
         return {"action": action, "tabId": tab_id}
 
-    if action == "setAudio":
-        sanitized = sanitize_state(data.get("state", {}))
-        if not sanitized:
-            return None
-        return {"action": action, "tabId": tab_id, "state": sanitized}
-
     return None
 
 
@@ -111,9 +73,8 @@ def cmd():
     data = request.json
     sanitized = validate_cmd(data)
 
-    print('/cmn', data)
     if not sanitized:
-        print('Error: /cmn request not sanitized', data)
+        print("Error: /cmd request not sanitized", data)
         abort(400)
 
     msg = json.dumps(sanitized)
