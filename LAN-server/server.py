@@ -48,23 +48,18 @@ def update_tabs():
 # --------------- COMMAND PUSH (SSE) - LAN ROUTES ----------------
 
 def validate_cmd(data):
-    if not isinstance(data, dict):
-        return None
-
-    action = data.get("action")
-    if action not in ALLOWED_ACTIONS:
-        return None
-
-    tab_id = data.get("tabId")
     try:
-        tab_id = int(tab_id)
+        if not isinstance(data, dict):
+            return None
+
+        action = data.get("action")
+        tab_id = int(data.get("tabId"))
+
+        if action in ("play", "pause"):
+            return {"action": action, "tabId": tab_id}
+        
     except (TypeError, ValueError):
         return None
-
-    if action in ("play", "pause"):
-        return {"action": action, "tabId": tab_id}
-
-    return None
 
 
 @app.route("/cmd", methods=["POST"])

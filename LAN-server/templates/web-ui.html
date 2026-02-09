@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Yes everything if offline available! -->
     <script src="{{ url_for('static', filename='qrious.min.js') }}"></script>
     <style>
       :root {
@@ -280,7 +281,6 @@
       import htm from "/static/htm.mjs";
 
       const html = htm.bind(h);
-      const token = "{{ token }}";
       const PRESET_FILTERS = [
         { label: "YouTube", query: "youtube" },
         { label: "Spotify", query: "spotify" },
@@ -402,7 +402,7 @@
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-API-Token": token,
+              "X-API-Token": "{{ token }}",
             },
             body: JSON.stringify({ tabId, action }),
           });
