@@ -1,21 +1,5 @@
 # Audio Bonanza - Extension & LAN server
 
-<style>
-  body {
-  background: #000000;
-  background: linear-gradient(
-    135deg,
-    #0a0e1f77 0%,
-    #120d2e77 30%,
-    #1a1a3d77 60%,
-    #002a3a77 100%
-  );
-  color: #e0f0ff;
-  min-height: 100vh;
-}
-</style>
-
-
 <img src="audio-bonanza-extension/assets/fancy.jpg" style="width: 50%"/>
 
 
