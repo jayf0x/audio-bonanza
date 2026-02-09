@@ -22,7 +22,7 @@
     },
   };
 
-  const DEFAULT_STATE = { ...PRESETS.slowedandreverb };
+  const DEFAULT_STATE = { ...PRESETS.off };
   const EPSILON = 0.0001;
 
   const elements = {

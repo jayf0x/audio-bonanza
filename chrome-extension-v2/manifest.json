@@ -15,5 +15,5 @@
     "service_worker": "background.js"
   },
   "permissions": ["scripting", "tabs"],
-  "host_permissions": ["<all_urls>"]
+  "host_permissions":["http://localhost:5055/*", "https://www.youtube.com/*"]
 }

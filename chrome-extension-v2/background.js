@@ -1,5 +1,8 @@
 'use strict';
 
+const SERVER_URL = 'http://localhost:5055';
+const DEFAULT_BROADCAST_URLS = ['*://*.youtube.com/*'];
+
 const DEFAULT_STATE = Object.freeze({
   playbackRate: 0.8,
   reverbWetMix: 0.4,
@@ -9,8 +12,41 @@ const DEFAULT_STATE = Object.freeze({
 
 const stateByTabId = new Map();
 const captureStatusByTabId = new Map();
-const contentPortsByTabId = new Map();
 const popupPorts = new Map();
+const pendingInjection = new Set();
+
+let tabsPushTimer = null;
+let serverReconnectTimer = null;
+let eventSource = null;
+
+const CLAMP_LIMITS = Object.freeze({
+  playbackRate: [0.5, 1.5],
+  reverbWetMix: [0, 1],
+  lowBandDecibels: [0, 10],
+});
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function sanitizeState(input, baseState) {
+  const nextState = { ...baseState };
+
+  if (typeof input.playbackRate === 'number' && Number.isFinite(input.playbackRate)) {
+    nextState.playbackRate = clamp(input.playbackRate, ...CLAMP_LIMITS.playbackRate);
+  }
+  if (typeof input.reverbWetMix === 'number' && Number.isFinite(input.reverbWetMix)) {
+    nextState.reverbWetMix = clamp(input.reverbWetMix, ...CLAMP_LIMITS.reverbWetMix);
+  }
+  if (typeof input.lowBandDecibels === 'number' && Number.isFinite(input.lowBandDecibels)) {
+    nextState.lowBandDecibels = clamp(input.lowBandDecibels, ...CLAMP_LIMITS.lowBandDecibels);
+  }
+  if (typeof input.preservesPitch === 'boolean') {
+    nextState.preservesPitch = input.preservesPitch;
+  }
+
+  return nextState;
+}
 
 function getState(tabId) {
   if (!stateByTabId.has(tabId)) {
@@ -19,35 +55,125 @@ function getState(tabId) {
   return stateByTabId.get(tabId);
 }
 
-async function ensureContentScript(tabId) {
+async function injectContentScript(tabId) {
+  if (pendingInjection.has(tabId)) {
+    return false;
+  }
+  pendingInjection.add(tabId);
   try {
     await chrome.scripting.executeScript({
       target: { tabId },
       files: ['content.js'],
+      world: 'MAIN',
     });
+    return true;
   } catch (error) {
-    // Injection can fail on restricted pages; ignore.
+    console.warn('[AudioRemix] Injection failed for tab', tabId, error);
+    return false;
+  } finally {
+    pendingInjection.delete(tabId);
   }
 }
 
-function sendStateToContent(tabId) {
-  const port = contentPortsByTabId.get(tabId);
-  if (!port) {
-    return;
+async function applyStateToTab(tabId, nextState) {
+  const applied = await tryApplyState(tabId, nextState);
+  if (applied) {
+    return true;
   }
+  console.info('[AudioRemix] applyState missing; injecting content script for tab', tabId);
+  const injected = await injectContentScript(tabId);
+  if (!injected) {
+    console.warn('[AudioRemix] Unable to inject content script for tab', tabId);
+    return false;
+  }
+  const appliedAfterInject = await tryApplyState(tabId, nextState);
+  if (!appliedAfterInject) {
+    console.warn('[AudioRemix] applyState still unavailable after inject for tab', tabId);
+  }
+  return appliedAfterInject;
+}
+
+async function applyStateToTabWithSetters(tabId, nextState) {
+  const applied = await tryApplySetters(tabId, nextState);
+  if (applied) {
+    return true;
+  }
+  console.info('[AudioRemix] setters missing; injecting content script for tab', tabId);
+  const injected = await injectContentScript(tabId);
+  if (!injected) {
+    console.warn('[AudioRemix] Unable to inject content script for tab', tabId);
+    return false;
+  }
+  const appliedAfterInject = await tryApplySetters(tabId, nextState);
+  if (!appliedAfterInject) {
+    console.warn('[AudioRemix] setters still unavailable after inject for tab', tabId);
+  }
+  return appliedAfterInject;
+}
+
+async function tryApplyState(tabId, nextState) {
   try {
-    port.postMessage({
-      type: 'CONTENT_STATE_UPDATE',
-      tabId,
-      state: getState(tabId),
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: 'MAIN',
+      func: (state) => {
+        const store = window.__audioRemixStore;
+        if (!store || typeof store.applyState !== 'function') {
+          return { ok: false };
+        }
+        store.applyState(state);
+        return { ok: true };
+      },
+      args: [nextState],
     });
+    return Boolean(results?.[0]?.result?.ok);
   } catch (error) {
-    // Port might be stale; ignore.
+    return false;
   }
 }
 
-function sendPopupState(port, tabId) {
-  const captureStatus = captureStatusByTabId.get(tabId) || 'UNKNOWN';
+async function tryApplySetters(tabId, nextState) {
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: 'MAIN',
+      func: (state) => {
+        const store = window.__audioRemixStore;
+        if (!store) {
+          return { ok: false };
+        }
+        let applied = false;
+        if (typeof store.setPlaybackRate === 'function' && typeof state.playbackRate === 'number') {
+          store.setPlaybackRate(state.playbackRate);
+          applied = true;
+        }
+        if (typeof store.setPreservesPitch === 'function' && typeof state.preservesPitch === 'boolean') {
+          store.setPreservesPitch(state.preservesPitch);
+          applied = true;
+        }
+        if (typeof store.setAudioParams === 'function') {
+          store.setAudioParams({
+            reverbWetMix: state.reverbWetMix,
+            lowBandDecibels: state.lowBandDecibels,
+          });
+          applied = true;
+        }
+        if (!applied && typeof store.applyState === 'function') {
+          store.applyState(state);
+          applied = true;
+        }
+        return { ok: applied };
+      },
+      args: [nextState],
+    });
+    return Boolean(results?.[0]?.result?.ok);
+  } catch (error) {
+    return false;
+  }
+}
+
+function sendPopupState(port, tabId, captureStatusOverride) {
+  const captureStatus = captureStatusOverride ?? captureStatusByTabId.get(tabId) ?? 'UNKNOWN';
   try {
     port.postMessage({
       type: 'POPUP_STATE',
@@ -68,33 +194,40 @@ function notifyPopupsForTab(tabId) {
   }
 }
 
-async function broadcastToYouTubeTabs(stateUpdate) {
-  const tabs = await chrome.tabs.query({ url: '*://*.youtube.com/*' });
+async function queueStateForTab(tabId, nextState) {
+  stateByTabId.set(tabId, nextState);
+  await applyStateToTab(tabId, nextState);
+}
+
+async function broadcastToUrlPatterns(urlPatterns, stateUpdate) {
+  const tabs = await chrome.tabs.query({ url: urlPatterns });
   for (const tab of tabs) {
     if (!tab.id) {
       continue;
     }
-    const nextState = { ...getState(tab.id), ...stateUpdate };
-    stateByTabId.set(tab.id, nextState);
-    await ensureContentScript(tab.id);
-    sendStateToContent(tab.id);
+    const nextState = sanitizeState(stateUpdate, getState(tab.id));
+    await queueStateForTab(tab.id, nextState);
   }
+}
+
+async function broadcastToYouTubeTabs(stateUpdate) {
+  await broadcastToUrlPatterns(DEFAULT_BROADCAST_URLS, stateUpdate);
 }
 
 function handlePopupPort(port) {
   port.onMessage.addListener(async (message) => {
     if (message?.type === 'POPUP_CONNECT' && message.tabId) {
       popupPorts.set(port, message.tabId);
-      sendPopupState(port, message.tabId);
-      await ensureContentScript(message.tabId);
-      sendStateToContent(message.tabId);
+      const captureStatus = await getCaptureStatusFromTab(message.tabId);
+      sendPopupState(port, message.tabId, captureStatus);
+      await queueStateForTab(message.tabId, getState(message.tabId));
       return;
     }
 
     if (message?.type === 'POPUP_UPDATE' && message.tabId && message.state) {
-      const nextState = { ...getState(message.tabId), ...message.state };
-      stateByTabId.set(message.tabId, nextState);
-      sendStateToContent(message.tabId);
+      const nextState = sanitizeState(message.state, getState(message.tabId));
+      queueStateForTab(message.tabId, nextState);
+      notifyPopupsForTab(message.tabId);
     }
   });
 
@@ -103,57 +236,172 @@ function handlePopupPort(port) {
   });
 }
 
-function handleContentPort(port) {
-  const tabId = port.sender?.tab?.id;
-  if (!tabId) {
-    port.disconnect();
+
+function tabAction(action) {
+  const media = document.querySelector('video, audio');
+  if (!media) {
+    return;
+  }
+  if (action === 'play') {
+    media.play();
+  } else if (action === 'pause') {
+    media.pause();
+  }
+}
+
+function controlTabPlayback(tabId, action) {
+  chrome.scripting.executeScript({
+    target: { tabId: Number(tabId) },
+    func: tabAction,
+    args: [action],
+  });
+}
+
+function handleServerCommand(command) {
+  console.log('AudioRemix] recieved a command-', command)
+  if (!command || typeof command !== 'object') {
     return;
   }
 
-  contentPortsByTabId.set(tabId, port);
+  const { action, tabId } = command;
+  if (!action || !tabId) {
+    return;
+  }
 
-  port.onDisconnect.addListener(() => {
-    contentPortsByTabId.delete(tabId);
-  });
+  if (action === 'play' || action === 'pause') {
+    controlTabPlayback(tabId, action);
+    return;
+  }
 
-  sendStateToContent(tabId);
+  if (action === 'setAudio' && command.state) {
+    const nextState = sanitizeState(command.state, getState(tabId));
+    stateByTabId.set(tabId, nextState);
+    applyStateToTabWithSetters(tabId, nextState);
+    notifyPopupsForTab(tabId);
+  }
+}
 
-  port.onMessage.addListener((message) => {
-    if (!message?.type) {
-      return;
+function scheduleTabsPush() {
+  if (tabsPushTimer) {
+    clearTimeout(tabsPushTimer);
+  }
+  tabsPushTimer = setTimeout(pushTabsToServer, 200);
+}
+
+async function pushTabsToServer() {
+  tabsPushTimer = null;
+  let tabs = [];
+
+  try {
+    const rawTabs = await chrome.tabs.query({ windowType: 'normal' });
+    tabs = rawTabs
+      .filter((tab) => tab.id && tab.url && tab.url.startsWith('http'))
+      .map((tab) => ({
+        id: tab.id,
+        title: tab.title || 'Untitled Tab',
+        url: tab.url,
+        audible: !!tab.audible,
+        muted: !!tab.mutedInfo?.muted,
+      }));
+  } catch (error) {
+    return;
+  }
+
+  try {
+    await fetch(`${SERVER_URL}/tabs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tabs),
+    });
+  } catch (error) {
+    // Ignore server failures.
+  }
+}
+
+function scheduleServerReconnect() {
+  if (serverReconnectTimer) {
+    return;
+  }
+  serverReconnectTimer = setTimeout(() => {
+    serverReconnectTimer = null;
+    connectToServer();
+  }, 2000);
+}
+
+function connectToServer() {
+  if (eventSource) {
+    eventSource.close();
+    eventSource = null;
+  }
+
+  try {
+    eventSource = new EventSource(`${SERVER_URL}/events`);
+  } catch (error) {
+    scheduleServerReconnect();
+    return;
+  }
+
+  eventSource.onmessage = (event) => {
+    try {
+      const command = JSON.parse(event.data);
+      handleServerCommand(command);
+    } catch (error) {
+      // Ignore malformed messages.
     }
+  };
 
-    if (message.type === 'CONTENT_CONNECT') {
-      if (message.captureStatus) {
-        captureStatusByTabId.set(tabId, message.captureStatus);
-        notifyPopupsForTab(tabId);
-      }
-      return;
+  eventSource.onerror = () => {
+    if (eventSource) {
+      eventSource.close();
+      eventSource = null;
     }
-
-    if (message.type === 'CONTENT_CAPTURE_STATUS') {
-      captureStatusByTabId.set(tabId, message.captureStatus);
-      notifyPopupsForTab(tabId);
-    }
-  });
+    scheduleServerReconnect();
+  };
 }
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'popup') {
     handlePopupPort(port);
-    return;
-  }
-
-  if (port.name === 'content') {
-    handleContentPort(port);
   }
 });
+
+async function getCaptureStatusFromTab(tabId) {
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: 'MAIN',
+      func: () => {
+        const store = window.__audioRemixStore;
+        if (!store || typeof store.getCaptureStatus !== 'function') {
+          return 'UNKNOWN';
+        }
+        return store.getCaptureStatus();
+      },
+    });
+    return results?.[0]?.result || 'UNKNOWN';
+  } catch (error) {
+    return 'UNKNOWN';
+  }
+}
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   stateByTabId.delete(tabId);
   captureStatusByTabId.delete(tabId);
-  contentPortsByTabId.delete(tabId);
+  pendingInjection.delete(tabId);
+  scheduleTabsPush();
 });
 
-// Expose broadcast helper for manual testing in the service worker console.
+chrome.tabs.onUpdated.addListener(() => scheduleTabsPush());
+chrome.tabs.onActivated.addListener(() => scheduleTabsPush());
+chrome.tabs.onCreated.addListener(() => scheduleTabsPush());
+chrome.runtime.onInstalled.addListener(() => scheduleTabsPush());
+chrome.runtime.onStartup.addListener(() => {
+  scheduleTabsPush();
+  connectToServer();
+});
+
+connectToServer();
+
+// Expose helpers for manual testing in the service worker console.
 self.broadcastToYouTubeTabs = broadcastToYouTubeTabs;
+self.broadcastToUrlPatterns = broadcastToUrlPatterns;
