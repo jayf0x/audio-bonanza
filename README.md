@@ -9,7 +9,7 @@ The **LAN server** is optional and provides a UI to remotely send **play/pause**
 
 ## Extension (primary)
 
-- Lives in `audio-bonanza-extension/`.
+- Lives in `audio-bonanza-extension`.
 - Works without the server.
 - Provides the full audio controls via the extension popup.
 
