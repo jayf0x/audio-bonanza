@@ -15,5 +15,5 @@
     "service_worker": "background.js"
   },
   "permissions": ["scripting", "tabs"],
-  "host_permissions":["http://localhost*", "https://*", "file:///*"]
+  "host_permissions":["*://*/*"]
 }
