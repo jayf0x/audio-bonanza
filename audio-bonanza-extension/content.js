@@ -1,5 +1,6 @@
 "use strict";
 (() => {
+  // use as filter in console log
   const LOG_PREFIX = "[AudioRemix]";
 
   if (globalThis.__audioRemixStore) {
