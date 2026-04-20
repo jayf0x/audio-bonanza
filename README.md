@@ -51,4 +51,5 @@ sequenceDiagram
 ```
 
 ## Roadmap
-** silence **
+
+Planned features and ideas are tracked in [issues](../../issues).
