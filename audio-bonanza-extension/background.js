@@ -15,6 +15,35 @@ const captureStatusByTabId = new Map();
 const popupPorts = new Map();
 const pendingInjection = new Set();
 
+const STORAGE_KEY = 'tabStates';
+
+async function loadStoredState() {
+  try {
+    const data = await chrome.storage.session.get(STORAGE_KEY);
+    const stored = data[STORAGE_KEY];
+    if (stored && typeof stored === 'object') {
+      for (const [tabIdStr, tabState] of Object.entries(stored)) {
+        const tabId = parseInt(tabIdStr, 10);
+        if (!isNaN(tabId)) {
+          stateByTabId.set(tabId, sanitizeState(tabState, DEFAULT_STATE));
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[AudioRemix] Failed to load stored state', e);
+  }
+}
+
+function saveState() {
+  const obj = {};
+  for (const [tabId, tabState] of stateByTabId.entries()) {
+    obj[String(tabId)] = tabState;
+  }
+  chrome.storage.session.set({ [STORAGE_KEY]: obj }).catch(() => {});
+}
+
+const storageReadyPromise = loadStoredState();
+
 let tabsPushTimer = null;
 let serverReconnectTimer = null;
 let eventSource = null;
@@ -196,6 +225,7 @@ function notifyPopupsForTab(tabId) {
 
 async function queueStateForTab(tabId, nextState) {
   stateByTabId.set(tabId, nextState);
+  saveState();
   await applyStateToTab(tabId, nextState);
 }
 
@@ -217,6 +247,7 @@ async function broadcastToYouTubeTabs(stateUpdate) {
 function handlePopupPort(port) {
   port.onMessage.addListener(async (message) => {
     if (message?.type === 'POPUP_CONNECT' && message.tabId) {
+      await storageReadyPromise;
       popupPorts.set(port, message.tabId);
       const captureStatus = await getCaptureStatusFromTab(message.tabId);
       sendPopupState(port, message.tabId, captureStatus);
@@ -388,6 +419,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   stateByTabId.delete(tabId);
   captureStatusByTabId.delete(tabId);
   pendingInjection.delete(tabId);
+  saveState();
   scheduleTabsPush();
 });
 

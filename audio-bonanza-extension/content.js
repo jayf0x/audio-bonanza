@@ -93,6 +93,8 @@
   createConvolver(audioContext).then((convolverNode) => {
     convolverNode.connect(wetGain);
     wetInput.connect(convolverNode);
+    // Re-check for media elements now that the full audio graph is ready.
+    updateAndWatchMediaElements(mediaElementStore.getMediaElements());
   });
 
   const lowshelfFilter = audioContext.createBiquadFilter();
@@ -344,23 +346,11 @@
       }
     });
 
-    function startWatchingElement(mediaElement) {
-      const rootElement = findRootElement(mediaElement);
-      rootElementObserver.observe(rootElement, {
-        subtree: true,
-        childList: true,
-      });
-    }
-
-    function findRootElement(htmlElement) {
-      if (!htmlElement.parentElement) {
-        return htmlElement;
-      }
-      return findRootElement(htmlElement.parentElement);
-    }
-
-    Array.from(mediaElementSet).forEach((mediaElement) => {
-      startWatchingElement(mediaElement);
+    // Always observe the document root so dynamically-added media elements
+    // (e.g. YouTube SPA navigation) are detected even when none exist at inject time.
+    rootElementObserver.observe(document.documentElement, {
+      subtree: true,
+      childList: true,
     });
 
     return {
