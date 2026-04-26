@@ -90,7 +90,7 @@ body {
 .section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   margin-top: 10px;
   animation: slideUp 360ms ease-out both;
   animation-delay: var(--delay, 0ms);
@@ -137,11 +137,7 @@ body {
 .control {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  gap: 6px;
 }
 
 .control-label-row {
@@ -154,60 +150,51 @@ body {
 .control-label {
   text-transform: uppercase;
   letter-spacing: 1px;
-}
-
-.control-range {
   color: var(--muted);
-  font-size: 11px;
 }
 
-.control-input-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.control-input-row input[type='range'] {
-  flex: 1;
+.control input[type='range'] {
+  width: 100%;
   -webkit-appearance: none;
   appearance: none;
-  height: 6px;
+  height: 5px;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(77, 216, 200, 0.4), rgba(77, 216, 200, 0.1));
+  background: linear-gradient(90deg, rgba(77, 216, 200, 0.35), rgba(77, 216, 200, 0.08));
   outline: none;
 }
 
-.control-input-row input[type='range']::-webkit-slider-thumb {
+.control input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid #0b1415;
-  box-shadow: 0 0 0 4px rgba(77, 216, 200, 0.2);
+  box-shadow: 0 0 0 3px rgba(77, 216, 200, 0.2);
 }
 
-.control-input-row input[type='range']::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+.control input[type='range']::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid #0b1415;
-  box-shadow: 0 0 0 4px rgba(77, 216, 200, 0.2);
+  box-shadow: 0 0 0 3px rgba(77, 216, 200, 0.2);
 }
 
-.control-input-row input[type='range']::-moz-range-track {
-  background: linear-gradient(90deg, rgba(77, 216, 200, 0.4), rgba(77, 216, 200, 0.1));
-  height: 6px;
+.control input[type='range']::-moz-range-track {
+  background: linear-gradient(90deg, rgba(77, 216, 200, 0.35), rgba(77, 216, 200, 0.08));
+  height: 5px;
   border-radius: 999px;
 }
 
 .control-value {
-  min-width: 58px;
+  min-width: 52px;
   text-align: right;
   font-size: 12px;
   color: var(--accent-2);
+  font-variant-numeric: tabular-nums;
 }
 
 .toggle {

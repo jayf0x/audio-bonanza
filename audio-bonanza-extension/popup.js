@@ -7,18 +7,27 @@
       reverbWetMix: 0.4,
       lowBandDecibels: 0,
       preservesPitch: false,
+      volume: 1,
+      delayTime: 0,
+      delayFeedback: 0,
     },
     nightcore: {
       playbackRate: 1.2,
       reverbWetMix: 0,
       lowBandDecibels: 0,
       preservesPitch: false,
+      volume: 1,
+      delayTime: 0,
+      delayFeedback: 0,
     },
     off: {
       playbackRate: 1,
       reverbWetMix: 0,
       lowBandDecibels: 0,
       preservesPitch: false,
+      volume: 1,
+      delayTime: 0,
+      delayFeedback: 0,
     },
   };
 
@@ -30,10 +39,16 @@
     playbackSlider: document.getElementById('playback-rate'),
     reverbSlider: document.getElementById('reverb-wet-mix'),
     bassSlider: document.getElementById('low-band-decibels'),
+    delayTimeSlider: document.getElementById('delay-time'),
+    delayFeedbackSlider: document.getElementById('delay-feedback'),
+    volumeSlider: document.getElementById('volume'),
     preserveToggle: document.getElementById('preserve-pitch'),
     playbackValue: document.getElementById('playback-rate-value'),
     reverbValue: document.getElementById('reverb-wet-mix-value'),
     bassValue: document.getElementById('low-band-decibels-value'),
+    delayTimeValue: document.getElementById('delay-time-value'),
+    delayFeedbackValue: document.getElementById('delay-feedback-value'),
+    volumeValue: document.getElementById('volume-value'),
     presetButtons: Array.from(document.querySelectorAll('.preset-btn')),
   };
 
@@ -57,6 +72,18 @@
     return `${value.toFixed(1)} dB`;
   }
 
+  function formatDelayTime(value) {
+    return `${Math.round(value * 1000)} ms`;
+  }
+
+  function formatDelayFeedback(value) {
+    return `${Math.round(value * 100)}%`;
+  }
+
+  function formatVolume(value) {
+    return `${Math.round(value * 100)}%`;
+  }
+
   function updatePresetButtons(state) {
     let matchedPreset = null;
     Object.entries(PRESETS).forEach(([key, preset]) => {
@@ -64,6 +91,9 @@
         nearlyEqual(state.playbackRate, preset.playbackRate) &&
         nearlyEqual(state.reverbWetMix, preset.reverbWetMix) &&
         nearlyEqual(state.lowBandDecibels, preset.lowBandDecibels) &&
+        nearlyEqual(state.volume ?? 1, preset.volume) &&
+        nearlyEqual(state.delayTime ?? 0, preset.delayTime) &&
+        nearlyEqual(state.delayFeedback ?? 0, preset.delayFeedback) &&
         state.preservesPitch === preset.preservesPitch;
       if (matches) {
         matchedPreset = key;
@@ -98,11 +128,17 @@
     elements.playbackSlider.value = state.playbackRate;
     elements.reverbSlider.value = state.reverbWetMix;
     elements.bassSlider.value = state.lowBandDecibels;
+    elements.delayTimeSlider.value = state.delayTime ?? 0;
+    elements.delayFeedbackSlider.value = state.delayFeedback ?? 0;
+    elements.volumeSlider.value = state.volume ?? 1;
     elements.preserveToggle.checked = state.preservesPitch;
 
     elements.playbackValue.textContent = formatPlayback(state.playbackRate);
     elements.reverbValue.textContent = formatReverb(state.reverbWetMix);
     elements.bassValue.textContent = formatBass(state.lowBandDecibels);
+    elements.delayTimeValue.textContent = formatDelayTime(state.delayTime ?? 0);
+    elements.delayFeedbackValue.textContent = formatDelayFeedback(state.delayFeedback ?? 0);
+    elements.volumeValue.textContent = formatVolume(state.volume ?? 1);
 
     updatePresetButtons(state);
   }
@@ -133,6 +169,9 @@
       playbackRate: parseFloat(elements.playbackSlider.value),
       reverbWetMix: parseFloat(elements.reverbSlider.value),
       lowBandDecibels: parseFloat(elements.bassSlider.value),
+      delayTime: parseFloat(elements.delayTimeSlider.value),
+      delayFeedback: parseFloat(elements.delayFeedbackSlider.value),
+      volume: parseFloat(elements.volumeSlider.value),
     });
   }
 
@@ -140,6 +179,9 @@
     elements.playbackSlider.addEventListener('input', handleSliderInput);
     elements.reverbSlider.addEventListener('input', handleSliderInput);
     elements.bassSlider.addEventListener('input', handleSliderInput);
+    elements.delayTimeSlider.addEventListener('input', handleSliderInput);
+    elements.delayFeedbackSlider.addEventListener('input', handleSliderInput);
+    elements.volumeSlider.addEventListener('input', handleSliderInput);
 
     elements.playbackSlider.addEventListener('dblclick', () => {
       setState({ playbackRate: DEFAULT_STATE.playbackRate });
@@ -149,6 +191,15 @@
     });
     elements.bassSlider.addEventListener('dblclick', () => {
       setState({ lowBandDecibels: DEFAULT_STATE.lowBandDecibels });
+    });
+    elements.delayTimeSlider.addEventListener('dblclick', () => {
+      setState({ delayTime: DEFAULT_STATE.delayTime });
+    });
+    elements.delayFeedbackSlider.addEventListener('dblclick', () => {
+      setState({ delayFeedback: DEFAULT_STATE.delayFeedback });
+    });
+    elements.volumeSlider.addEventListener('dblclick', () => {
+      setState({ volume: DEFAULT_STATE.volume });
     });
 
     elements.preserveToggle.addEventListener('change', (event) => {

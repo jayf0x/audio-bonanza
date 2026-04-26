@@ -8,6 +8,9 @@ const DEFAULT_STATE = Object.freeze({
   reverbWetMix: 0.4,
   lowBandDecibels: 0,
   preservesPitch: false,
+  volume: 1,
+  delayTime: 0,
+  delayFeedback: 0,
 });
 
 const stateByTabId = new Map();
@@ -50,8 +53,11 @@ let eventSource = null;
 
 const CLAMP_LIMITS = Object.freeze({
   playbackRate: [0.5, 1.5],
-  reverbWetMix: [0, 1],
+  reverbWetMix: [0, 1.5],
   lowBandDecibels: [0, 10],
+  volume: [0, 2],
+  delayTime: [0, 1],
+  delayFeedback: [0, 0.8],
 });
 
 function clamp(value, min, max) {
@@ -72,6 +78,15 @@ function sanitizeState(input, baseState) {
   }
   if (typeof input.preservesPitch === 'boolean') {
     nextState.preservesPitch = input.preservesPitch;
+  }
+  if (typeof input.volume === 'number' && Number.isFinite(input.volume)) {
+    nextState.volume = clamp(input.volume, ...CLAMP_LIMITS.volume);
+  }
+  if (typeof input.delayTime === 'number' && Number.isFinite(input.delayTime)) {
+    nextState.delayTime = clamp(input.delayTime, ...CLAMP_LIMITS.delayTime);
+  }
+  if (typeof input.delayFeedback === 'number' && Number.isFinite(input.delayFeedback)) {
+    nextState.delayFeedback = clamp(input.delayFeedback, ...CLAMP_LIMITS.delayFeedback);
   }
 
   return nextState;

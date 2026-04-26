@@ -28,6 +28,9 @@
     reverbWetMix: 0.4,
     lowBandDecibels: 0,
     preservesPitch: false,
+    volume: 1,
+    delayTime: 0,
+    delayFeedback: 0,
   };
   const DETACH_GRACE_MS = 5000;
 
@@ -81,14 +84,28 @@
 
   document.addEventListener("click", resumeAudioContext);
 
+  // Master gain routes all processed audio to the destination.
+  const masterGain = audioContext.createGain();
+  masterGain.gain.value = 1;
+  masterGain.connect(audioContext.destination);
+
   const dryGain = audioContext.createGain();
-  dryGain.connect(audioContext.destination);
+  dryGain.connect(masterGain);
 
   const wetInput = audioContext.createGain();
   wetInput.gain.value = 1;
 
   const wetGain = audioContext.createGain();
-  wetGain.connect(audioContext.destination);
+  wetGain.connect(masterGain);
+
+  const delayNode = audioContext.createDelay(1.0);
+  const delayFeedbackGain = audioContext.createGain();
+  const delayWetGain = audioContext.createGain();
+  delayWetGain.gain.value = 0;
+  delayNode.connect(delayFeedbackGain);
+  delayFeedbackGain.connect(delayNode);
+  delayNode.connect(delayWetGain);
+  delayWetGain.connect(masterGain);
 
   createConvolver(audioContext).then((convolverNode) => {
     convolverNode.connect(wetGain);
@@ -102,6 +119,7 @@
   lowshelfFilter.frequency.value = 160;
   lowshelfFilter.connect(dryGain);
   lowshelfFilter.connect(wetInput);
+  lowshelfFilter.connect(delayNode);
 
   let state = { ...DEFAULT_STATE };
 
@@ -129,6 +147,8 @@
   const uncapturableMediaElementSet = new Set();
   const capturedMediaElements = new WeakSet();
   const pendingRemovalTimers = new Map();
+  // Tracks elements we muted to silence the native audio path when using captureStream fallback.
+  const mutedByExtension = new Set();
   globalThis.__audioRemixStore.sourceNodesByMediaElements = sourceNodesByMediaElements;
   globalThis.__audioRemixStore.uncapturableMediaElementSet = uncapturableMediaElementSet;
 
@@ -159,8 +179,12 @@
 
   function applyStateToNodes() {
     wetGain.gain.value = state.reverbWetMix;
-    dryGain.gain.value = 1 - state.reverbWetMix;
+    dryGain.gain.value = Math.max(0, 1 - state.reverbWetMix);
     lowshelfFilter.gain.value = state.lowBandDecibels;
+    masterGain.gain.value = state.volume ?? 1;
+    delayNode.delayTime.value = state.delayTime ?? 0;
+    delayFeedbackGain.gain.value = state.delayFeedback ?? 0;
+    delayWetGain.gain.value = (state.delayTime ?? 0) > 0 ? 0.4 : 0;
   }
 
   function applyStateToMediaElements(mediaElements) {
@@ -190,13 +214,22 @@
     applyStateToMediaElements(mediaElementStore.getMediaElements());
   }
 
-  function setAudioParams({ reverbWetMix, lowBandDecibels } = {}) {
+  function setAudioParams({ reverbWetMix, lowBandDecibels, volume, delayTime, delayFeedback } = {}) {
     const nextState = { ...state };
     if (typeof reverbWetMix === "number" && Number.isFinite(reverbWetMix)) {
       nextState.reverbWetMix = reverbWetMix;
     }
     if (typeof lowBandDecibels === "number" && Number.isFinite(lowBandDecibels)) {
       nextState.lowBandDecibels = lowBandDecibels;
+    }
+    if (typeof volume === "number" && Number.isFinite(volume)) {
+      nextState.volume = volume;
+    }
+    if (typeof delayTime === "number" && Number.isFinite(delayTime)) {
+      nextState.delayTime = delayTime;
+    }
+    if (typeof delayFeedback === "number" && Number.isFinite(delayFeedback)) {
+      nextState.delayFeedback = delayFeedback;
     }
     state = nextState;
     applyStateToNodes();
@@ -234,6 +267,10 @@
       if (sourceNode) {
         sourceNode.disconnect();
         sourceNodesByMediaElements.delete(mediaElement);
+      }
+      if (mutedByExtension.has(mediaElement)) {
+        mediaElement.muted = false;
+        mutedByExtension.delete(mediaElement);
       }
       uncapturableMediaElementSet.delete(mediaElement);
     }, DETACH_GRACE_MS);
@@ -277,23 +314,34 @@
       try {
         const wasPlaying = !mediaElement.paused;
         let sourceNode = null;
-        let stream = null;
-        if (typeof mediaElement.captureStream === "function") {
-          stream = mediaElement.captureStream();
-        } else if (typeof mediaElement.mozCaptureStream === "function") {
-          stream = mediaElement.mozCaptureStream();
-        }
 
-        if (stream) {
-          sourceNode = audioContext.createMediaStreamSource(stream);
-          console.info(`${LOG_PREFIX} Using captureStream source.`);
-        } else {
-          if (!isCaptureSupported(mediaElement)) {
+        try {
+          // Preferred: MediaElementSource exclusively routes audio through Web Audio,
+          // preventing the native audio path from playing alongside the processed path.
+          sourceNode = audioContext.createMediaElementSource(mediaElement);
+          console.info(`${LOG_PREFIX} Using MediaElementSource.`);
+        } catch (primaryErr) {
+          // DRM or cross-origin content — fall back to captureStream and mute native output.
+          let stream = null;
+          if (typeof mediaElement.captureStream === "function") {
+            stream = mediaElement.captureStream();
+          } else if (typeof mediaElement.mozCaptureStream === "function") {
+            stream = mediaElement.mozCaptureStream();
+          }
+          if (stream) {
+            sourceNode = audioContext.createMediaStreamSource(stream);
+            if (!mediaElement.muted) {
+              mediaElement.muted = true;
+              mutedByExtension.add(mediaElement);
+            }
+            console.info(`${LOG_PREFIX} Using captureStream source (native muted).`);
+          } else {
+            if (primaryErr.name === "InvalidStateError") {
+              capturedMediaElements.add(mediaElement);
+            }
             uncapturableMediaElementSet.add(mediaElement);
             return;
           }
-          sourceNode = audioContext.createMediaElementSource(mediaElement);
-          console.info(`${LOG_PREFIX} Using MediaElementSource.`);
         }
 
         sourceNode.connect(lowshelfFilter);

@@ -3,7 +3,7 @@
 <img src="audio-bonanza-extension/assets/fancy.jpg" style="width: 50%"/>
 
 
-**Audio Bonanza** is a **totally free** Chrome extension for **fun** audio control (speed, reverb, bass, pitch).
+**Audio Bonanza** is a **totally free** Chrome extension for **fun** realtime audio control.
 
 The **LAN server** is optional and provides a UI to remotely send **play/pause** to tabs on the machine running it (with the extension enabled).
 
@@ -12,6 +12,20 @@ The **LAN server** is optional and provides a UI to remotely send **play/pause**
 - Lives in `audio-bonanza-extension`.
 - Works without the server.
 - Provides the full audio controls via the extension popup.
+
+### Controls
+
+| Control | Range | Description |
+|---------|-------|-------------|
+| Speed | 0.50–1.50× | Playback rate |
+| Reverb | 0–150% | Wet/dry mix for convolution reverb |
+| Bass Boost | 0–10 dB | Low-shelf filter at 160 Hz |
+| Delay | 0–1000 ms | Echo delay time |
+| Delay Echo | 0–80% | Feedback (number of echo repeats) |
+| Volume | 0–200% | Master output gain |
+| Preserve Pitch | on/off | Keeps pitch locked when speed changes |
+
+Double-click any slider to reset it to its default value. Three built-in presets: **Slowed + Reverb**, **Nightcore**, **Off**.
 
 ### Load the extension
 
