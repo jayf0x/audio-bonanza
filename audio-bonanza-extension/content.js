@@ -25,13 +25,17 @@
 
   const DEFAULT_STATE = {
     playbackRate: 0.8,
-    reverbWetMix: 0.4,
+    reverbAmount: 0.4,
     lowBandDecibels: 0,
     preservesPitch: false,
     volume: 1,
     delayTime: 0,
     delayFeedback: 0,
+    delayWet: 0.4,
+    eq: [0, 0, 0, 0, 0, 0, 0, 0],
   };
+
+  const EQ_FREQUENCIES = [63, 125, 250, 500, 1000, 2000, 4000, 8000];
   const DETACH_GRACE_MS = 5000;
 
   function createWhiteNoiseBuffer(audioContext) {
@@ -121,6 +125,19 @@
   lowshelfFilter.connect(wetInput);
   lowshelfFilter.connect(delayNode);
 
+  const eqFilters = EQ_FREQUENCIES.map((freq) => {
+    const f = audioContext.createBiquadFilter();
+    f.type = "peaking";
+    f.frequency.value = freq;
+    f.Q.value = 1.4;
+    f.gain.value = 0;
+    return f;
+  });
+  for (let i = 0; i < eqFilters.length - 1; i++) {
+    eqFilters[i].connect(eqFilters[i + 1]);
+  }
+  eqFilters[eqFilters.length - 1].connect(lowshelfFilter);
+
   let state = { ...DEFAULT_STATE };
 
   const mediaElementAttributeObserver = new MutationObserver((mutations) => {
@@ -178,13 +195,16 @@
   }
 
   function applyStateToNodes() {
-    wetGain.gain.value = state.reverbWetMix;
-    dryGain.gain.value = Math.max(0, 1 - state.reverbWetMix);
+    const reverbAmount = state.reverbAmount ?? 0.4;
+    wetGain.gain.value = reverbAmount;
+    dryGain.gain.value = Math.max(0, 1 - reverbAmount);
     lowshelfFilter.gain.value = state.lowBandDecibels;
     masterGain.gain.value = state.volume ?? 1;
     delayNode.delayTime.value = state.delayTime ?? 0;
     delayFeedbackGain.gain.value = state.delayFeedback ?? 0;
-    delayWetGain.gain.value = (state.delayTime ?? 0) > 0 ? 0.4 : 0;
+    delayWetGain.gain.value = (state.delayTime ?? 0) > 0 ? (state.delayWet ?? 0.4) : 0;
+    const eq = state.eq || [];
+    eqFilters.forEach((f, i) => { f.gain.value = eq[i] ?? 0; });
   }
 
   function applyStateToMediaElements(mediaElements) {
@@ -214,10 +234,10 @@
     applyStateToMediaElements(mediaElementStore.getMediaElements());
   }
 
-  function setAudioParams({ reverbWetMix, lowBandDecibels, volume, delayTime, delayFeedback } = {}) {
+  function setAudioParams({ reverbAmount, lowBandDecibels, volume, delayTime, delayFeedback, delayWet, eq } = {}) {
     const nextState = { ...state };
-    if (typeof reverbWetMix === "number" && Number.isFinite(reverbWetMix)) {
-      nextState.reverbWetMix = reverbWetMix;
+    if (typeof reverbAmount === "number" && Number.isFinite(reverbAmount)) {
+      nextState.reverbAmount = reverbAmount;
     }
     if (typeof lowBandDecibels === "number" && Number.isFinite(lowBandDecibels)) {
       nextState.lowBandDecibels = lowBandDecibels;
@@ -230,6 +250,12 @@
     }
     if (typeof delayFeedback === "number" && Number.isFinite(delayFeedback)) {
       nextState.delayFeedback = delayFeedback;
+    }
+    if (typeof delayWet === "number" && Number.isFinite(delayWet)) {
+      nextState.delayWet = delayWet;
+    }
+    if (Array.isArray(eq) && eq.length === 8) {
+      nextState.eq = eq;
     }
     state = nextState;
     applyStateToNodes();
@@ -344,7 +370,7 @@
           }
         }
 
-        sourceNode.connect(lowshelfFilter);
+        sourceNode.connect(eqFilters[0]);
         sourceNodesByMediaElements.set(mediaElement, sourceNode);
         capturedMediaElements.add(mediaElement);
         clearPendingRemoval(mediaElement);

@@ -3,33 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Audio Remix</title>
+  <title>Audio Bonanza</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div class="app">
     <header class="app-header">
-      <div>
-        <div class="title">Audio Bonanza</div>
-        <div class="subtitle">Realtime audio effects</div>
-      </div>
-      <div class="badge">v2</div>
+      <div class="title">Audio Bonanza</div>
     </header>
 
     <div id="status" class="status status--hidden"></div>
 
     <section class="section" style="--delay: 80ms">
-      <div class="section-title">Presets</div>
       <div class="preset-grid">
-        <button class="preset-btn" data-preset="slowedandreverb">Slowed + Reverb</button>
-        <button class="preset-btn" data-preset="nightcore">Nightcore</button>
-        <button class="preset-btn" data-preset="off">Off</button>
+        <div class="preset-item" data-preset="a">
+          <input class="preset-name" data-preset="a" type="text" value="Slot A" maxlength="20" spellcheck="false" autocomplete="off" />
+          <button class="preset-save" data-preset="a" disabled title="Save current settings to Slot A">💾</button>
+        </div>
+        <div class="preset-item" data-preset="b">
+          <input class="preset-name" data-preset="b" type="text" value="Slot B" maxlength="20" spellcheck="false" autocomplete="off" />
+          <button class="preset-save" data-preset="b" disabled title="Save current settings to Slot B">💾</button>
+        </div>
+        <div class="preset-item" data-preset="off">
+          <button class="preset-apply" data-preset="off">Off</button>
+        </div>
       </div>
     </section>
 
     <section class="section" style="--delay: 140ms">
-      <div class="section-title">Controls</div>
-
       <div class="control">
         <div class="control-label-row">
           <span class="control-label">Speed</span>
@@ -41,9 +42,9 @@
       <div class="control">
         <div class="control-label-row">
           <span class="control-label">Reverb</span>
-          <span class="control-value" id="reverb-wet-mix-value">40%</span>
+          <span class="control-value" id="reverb-amount-value">40%</span>
         </div>
-        <input type="range" id="reverb-wet-mix" min="0" max="1.5" step="any" value="0.4" />
+        <input type="range" id="reverb-amount" min="0" max="1.5" step="any" value="0.4" />
       </div>
 
       <div class="control">
@@ -72,6 +73,14 @@
 
       <div class="control">
         <div class="control-label-row">
+          <span class="control-label">Delay Wet</span>
+          <span class="control-value" id="delay-wet-value">40%</span>
+        </div>
+        <input type="range" id="delay-wet" min="0" max="1" step="any" value="0.4" />
+      </div>
+
+      <div class="control">
+        <div class="control-label-row">
           <span class="control-label">Volume</span>
           <span class="control-value" id="volume-value">100%</span>
         </div>
@@ -85,6 +94,55 @@
         </span>
         <span class="toggle-text">Preserve Pitch</span>
       </label>
+    </section>
+  </div>
+
+    <section class="section eq-section" style="--delay: 200ms">
+      <div class="control-label-row">
+        <span class="control-label">EQ</span>
+      </div>
+      <div class="eq-grid">
+        <div class="eq-band">
+          <span class="eq-value" data-eq="0">0</span>
+          <input type="range" class="eq-slider" data-eq="0" min="-12" max="12" step="any" value="0" />
+          <span class="eq-label">63</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-value" data-eq="1">0</span>
+          <input type="range" class="eq-slider" data-eq="1" min="-12" max="12" step="any" value="0" />
+          <span class="eq-label">125</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-value" data-eq="2">0</span>
+          <input type="range" class="eq-slider" data-eq="2" min="-12" max="12" step="any" value="0" />
+          <span class="eq-label">250</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-value" data-eq="3">0</span>
+          <input type="range" class="eq-slider" data-eq="3" min="-12" max="12" step="any" value="0" />
+          <span class="eq-label">500</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-value" data-eq="4">0</span>
+          <input type="range" class="eq-slider" data-eq="4" min="-12" max="12" step="any" value="0" />
+          <span class="eq-label">1k</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-value" data-eq="5">0</span>
+          <input type="range" class="eq-slider" data-eq="5" min="-12" max="12" step="any" value="0" />
+          <span class="eq-label">2k</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-value" data-eq="6">0</span>
+          <input type="range" class="eq-slider" data-eq="6" min="-12" max="12" step="any" value="0" />
+          <span class="eq-label">4k</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-value" data-eq="7">0</span>
+          <input type="range" class="eq-slider" data-eq="7" min="-12" max="12" step="any" value="0" />
+          <span class="eq-label">8k</span>
+        </div>
+      </div>
     </section>
   </div>
 

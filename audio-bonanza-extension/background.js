@@ -5,12 +5,14 @@ const DEFAULT_BROADCAST_URLS = ['*://*.youtube.com/*'];
 
 const DEFAULT_STATE = Object.freeze({
   playbackRate: 0.8,
-  reverbWetMix: 0.4,
+  reverbAmount: 0.4,
   lowBandDecibels: 0,
   preservesPitch: false,
   volume: 1,
   delayTime: 0,
   delayFeedback: 0,
+  delayWet: 0.4,
+  eq: [0, 0, 0, 0, 0, 0, 0, 0],
 });
 
 const stateByTabId = new Map();
@@ -53,11 +55,12 @@ let eventSource = null;
 
 const CLAMP_LIMITS = Object.freeze({
   playbackRate: [0.5, 1.5],
-  reverbWetMix: [0, 1.5],
+  reverbAmount: [0, 1.5],
   lowBandDecibels: [0, 10],
   volume: [0, 2],
   delayTime: [0, 1],
   delayFeedback: [0, 0.8],
+  delayWet: [0, 1],
 });
 
 function clamp(value, min, max) {
@@ -70,8 +73,8 @@ function sanitizeState(input, baseState) {
   if (typeof input.playbackRate === 'number' && Number.isFinite(input.playbackRate)) {
     nextState.playbackRate = clamp(input.playbackRate, ...CLAMP_LIMITS.playbackRate);
   }
-  if (typeof input.reverbWetMix === 'number' && Number.isFinite(input.reverbWetMix)) {
-    nextState.reverbWetMix = clamp(input.reverbWetMix, ...CLAMP_LIMITS.reverbWetMix);
+  if (typeof input.reverbAmount === 'number' && Number.isFinite(input.reverbAmount)) {
+    nextState.reverbAmount = clamp(input.reverbAmount, ...CLAMP_LIMITS.reverbAmount);
   }
   if (typeof input.lowBandDecibels === 'number' && Number.isFinite(input.lowBandDecibels)) {
     nextState.lowBandDecibels = clamp(input.lowBandDecibels, ...CLAMP_LIMITS.lowBandDecibels);
@@ -87,6 +90,14 @@ function sanitizeState(input, baseState) {
   }
   if (typeof input.delayFeedback === 'number' && Number.isFinite(input.delayFeedback)) {
     nextState.delayFeedback = clamp(input.delayFeedback, ...CLAMP_LIMITS.delayFeedback);
+  }
+  if (typeof input.delayWet === 'number' && Number.isFinite(input.delayWet)) {
+    nextState.delayWet = clamp(input.delayWet, ...CLAMP_LIMITS.delayWet);
+  }
+  if (Array.isArray(input.eq) && input.eq.length === 8) {
+    nextState.eq = input.eq.map((v) =>
+      typeof v === 'number' && Number.isFinite(v) ? clamp(v, -12, 12) : 0
+    );
   }
 
   return nextState;
@@ -273,7 +284,6 @@ function handlePopupPort(port) {
     if (message?.type === 'POPUP_UPDATE' && message.tabId && message.state) {
       const nextState = sanitizeState(message.state, getState(message.tabId));
       queueStateForTab(message.tabId, nextState);
-      notifyPopupsForTab(message.tabId);
     }
   });
 
