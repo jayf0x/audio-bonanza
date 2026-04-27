@@ -20,11 +20,13 @@
 html,
 body {
   height: 100%;
+  max-height: 800px;
 }
 
 body {
   width: 360px;
-  min-height: 100%;
+  display: flex;
+  flex-direction: column;
   font-family: "Avenir Next", "Avenir", "Futura", "Trebuchet MS", sans-serif;
   color: var(--text);
   background: radial-gradient(circle at top, rgba(77, 216, 200, 0.12), transparent 55%),
@@ -32,6 +34,10 @@ body {
 }
 
 .app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   background: linear-gradient(140deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
   border: 1px solid var(--border);
   padding: 16px 16px 18px;
@@ -39,13 +45,15 @@ body {
 }
 
 .app-header {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .title {
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
+  color: var(--muted);
+  text-transform: uppercase;
 }
 
 .status {
@@ -69,6 +77,10 @@ body {
   margin-top: 10px;
   animation: slideUp 360ms ease-out both;
   animation-delay: var(--delay, 0ms);
+}
+
+.controls-section {
+  overflow-y: auto;
 }
 
 .preset-grid {
@@ -178,12 +190,12 @@ body {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .control-label {
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   color: var(--muted);
 }
 
@@ -224,9 +236,9 @@ body {
 }
 
 .control-value {
-  min-width: 52px;
+  min-width: 44px;
   text-align: right;
-  font-size: 12px;
+  font-size: 10px;
   color: var(--accent-2);
   font-variant-numeric: tabular-nums;
 }
@@ -282,16 +294,17 @@ body {
   text-transform: uppercase;
 }
 
-.eq-section {
+.eq-control {
   border-top: 1px solid var(--border);
   padding-top: 10px;
+  overflow-y: auto;
 }
 
 .eq-grid {
   display: flex;
   justify-content: space-between;
   gap: 4px;
-  height: 44px;
+  height: 200px;
 }
 
 .eq-band {
@@ -313,7 +326,8 @@ body {
   writing-mode: vertical-lr;
   direction: rtl;
   flex: 1;
-  width: 4px;
+  width: 3px;
+  max-width: 20px;
   -webkit-appearance: none;
   appearance: none;
   border-radius: 999px;
