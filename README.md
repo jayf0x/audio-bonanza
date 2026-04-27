@@ -1,6 +1,7 @@
-# Audio Bonanza - Extension & LAN server
+# Audio Bonanza - Extension
+> Free, Open.
 
-<img src="audio-bonanza-extension/assets/fancy.jpg" style="width: 50%"/>
+<img src="assets/screenshot.png" style="width: 50%"/>
 
 
 **Audio Bonanza** is a **totally free** Chrome extension for **fun** realtime audio control.
