@@ -283,32 +283,29 @@ body {
 }
 
 .eq-section {
-  margin-top: 6px;
-  padding-top: 12px;
   border-top: 1px solid var(--border);
+  padding-top: 10px;
 }
 
 .eq-grid {
   display: flex;
   justify-content: space-between;
   gap: 4px;
-  height: 110px;
-  padding-top: 4px;
+  height: 72px;
 }
 
 .eq-band {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
 }
 
 .eq-value {
-  font-size: 9px;
+  font-size: 8px;
   color: var(--accent-2);
   font-variant-numeric: tabular-nums;
-  min-height: 12px;
   line-height: 1;
 }
 
@@ -316,7 +313,7 @@ body {
   writing-mode: vertical-lr;
   direction: rtl;
   flex: 1;
-  width: 5px;
+  width: 4px;
   -webkit-appearance: none;
   appearance: none;
   border-radius: 999px;
@@ -328,21 +325,21 @@ body {
 .eq-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid #0b1415;
-  box-shadow: 0 0 0 3px rgba(77, 216, 200, 0.2);
+  box-shadow: 0 0 0 2px rgba(77, 216, 200, 0.2);
 }
 
 .eq-slider::-moz-range-thumb {
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid #0b1415;
-  box-shadow: 0 0 0 3px rgba(77, 216, 200, 0.2);
+  box-shadow: 0 0 0 2px rgba(77, 216, 200, 0.2);
 }
 
 .eq-label {
