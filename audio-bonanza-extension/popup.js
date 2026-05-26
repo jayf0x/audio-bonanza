@@ -12,7 +12,7 @@
     volume: 1,
     delayTime: 0,
     delayFeedback: 0,
-    delayWet: 0.4,
+    delayWet: 0,
     eq: [0, 0, 0, 0, 0, 0, 0, 0],
   };
 
@@ -26,7 +26,7 @@
       volume: 1,
       delayTime: 0,
       delayFeedback: 0,
-      delayWet: 0.4,
+      delayWet: 0,
       eq: [0, 0, 0, 0, 0, 0, 0, 0],
     },
     b: {
@@ -38,7 +38,7 @@
       volume: 1,
       delayTime: 0,
       delayFeedback: 0,
-      delayWet: 0.4,
+      delayWet: 0,
       eq: [0, 0, 0, 0, 0, 0, 0, 0],
     },
   };
@@ -51,7 +51,7 @@
     volume: 1,
     delayTime: 0,
     delayFeedback: 0,
-    delayWet: 0.4,
+    delayWet: 0,
     eq: [0, 0, 0, 0, 0, 0, 0, 0],
   };
 
@@ -100,7 +100,7 @@
       nearlyEqual(state.volume ?? 1, preset.volume ?? 1) &&
       nearlyEqual(state.delayTime ?? 0, preset.delayTime ?? 0) &&
       nearlyEqual(state.delayFeedback ?? 0, preset.delayFeedback ?? 0) &&
-      nearlyEqual(state.delayWet ?? 0.4, preset.delayWet ?? 0.4) &&
+      nearlyEqual(state.delayWet ?? 0, preset.delayWet ?? 0) &&
       state.preservesPitch === preset.preservesPitch &&
       stateEq.every((v, i) => nearlyEqual(v, presetEq[i]))
     );
@@ -138,7 +138,7 @@
       const saveBtn = document.querySelector(`.preset-save[data-preset="${key}"]`);
       if (!item || !saveBtn) return;
       item.classList.toggle('is-active', activePresetKey === key);
-      saveBtn.disabled = activePresetKey !== key || !isPresetDirty(key);
+      saveBtn.disabled = !isPresetDirty(key);
     });
 
     const offItem = document.querySelector('.preset-item[data-preset="off"]');
@@ -164,7 +164,7 @@
     elements.bassSlider.value = state.lowBandDecibels;
     elements.delayTimeSlider.value = state.delayTime ?? 0;
     elements.delayFeedbackSlider.value = state.delayFeedback ?? 0;
-    elements.delayWetSlider.value = state.delayWet ?? 0.4;
+    elements.delayWetSlider.value = state.delayWet ?? 0;
     elements.volumeSlider.value = state.volume ?? 1;
     elements.preserveToggle.checked = state.preservesPitch;
 
@@ -173,7 +173,7 @@
     elements.bassValue.textContent = formatBass(state.lowBandDecibels);
     elements.delayTimeValue.textContent = formatDelay(state.delayTime ?? 0);
     elements.delayFeedbackValue.textContent = formatPercent(state.delayFeedback ?? 0);
-    elements.delayWetValue.textContent = formatPercent(state.delayWet ?? 0.4);
+    elements.delayWetValue.textContent = formatPercent(state.delayWet ?? 0);
     elements.volumeValue.textContent = formatPercent(state.volume ?? 1);
 
     const eq = state.eq || Array(8).fill(0);
