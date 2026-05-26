@@ -1,20 +1,13 @@
-# Audio Bonanza - Extension
-> Free, Open.
+# Audio Bonanza
+> Free. No account. No subscription. Just audio control.
 
 <img src="assets/screenshot.png" style="width: 50%"/>
 
+**Audio Bonanza** is a free Chrome extension that gives you real-time control over any audio playing in your browser — speed, reverb, bass, delay, EQ, and more. Tweak it, save presets, and make everything sound exactly how you want.
 
-**Audio Bonanza** is a **totally free** Chrome extension for **fun** realtime audio control.
+Works on YouTube, Spotify Web, SoundCloud, podcasts, video calls — any tab with audio.
 
-The **LAN server** is optional and provides a UI to remotely send **play/pause** to tabs on the machine running it (with the extension enabled).
-
-## Extension (primary)
-
-- Lives in `audio-bonanza-extension`.
-- Works without the server.
-- Provides the full audio controls via the extension popup.
-
-### Controls
+## 🎛️ Controls
 
 | Control | Range | Description |
 |---------|-------|-------------|
@@ -24,47 +17,53 @@ The **LAN server** is optional and provides a UI to remotely send **play/pause**
 | Delay | 0–1000 ms | Echo delay time |
 | Delay Echo | 0–80% | Feedback (number of echo repeats) |
 | Volume | 0–200% | Master output gain |
+| EQ | ±12 dB × 8 bands | Full equalizer |
 | Preserve Pitch | on/off | Keeps pitch locked when speed changes |
 
-Double-click any slider to reset it to its default value. Three built-in presets: **Slowed + Reverb**, **Nightcore**, **Off**.
+Double-click any slider to reset it. Save your favourite settings as **Preset A** or **Preset B** — they persist across sessions.
 
-### Load the extension
+## 📲 Control from your phone (or any device on your network)
 
-1. Open `chrome://extensions`.
-2. Enable **Developer mode**.
-3. Click **Load unpacked**.
-4. Select the `audio-bonanza-extension` folder.
+Ever wanted to skip a track or pause the music from your couch, kitchen, or another room — without touching your computer?
 
-## LAN server (optional play/pause remote)
+The optional LAN server turns any device on your home network into a remote control. Open the URL on your phone, and you get a simple page that can play/pause any browser tab on your machine. No app to install, no Bluetooth pairing, no third-party service. Just your local network.
 
-- Lives in `LAN-server/`.
-- Serves a small web UI (tabs list + play/pause).
-- Pushes play/pause commands to the extension over Server-Sent Events (SSE).
+Great for:
+- Pausing music while on a call without alt-tabbing
+- Controlling a playlist from your phone while cooking
+- Shared listening setups where multiple people want control
 
-### Run the server
+### Run it
 
 ```bash
 python3 LAN-server/server.py
 ```
 
-Open `http://localhost:5055` and use the token shown in the UI (QR code is optional).
+Open `http://localhost:5055` — you'll see a QR code to scan from your phone.
 
-### Flow
+### How it works
 
 ```mermaid
 sequenceDiagram
-  participant UI as Web UI (LAN server)
-  participant Server as Flask Server
-  participant Ext as Extension (background)
+  participant Phone as Your phone (browser)
+  participant Server as LAN server
+  participant Ext as Extension
   participant Tab as Browser Tab
 
-  UI->>Server: POST /cmd {tabId, action}
-  Server-->>Ext: SSE /events (play/pause)
-  Ext->>Tab: executeScript(play/pause)
-  Ext-->>Server: POST /tabs (tab list updates)
-  Server-->>UI: SSE /tab-events (tabs)
+  Phone->>Server: tap Play/Pause
+  Server-->>Ext: sends command
+  Ext->>Tab: plays or pauses
+  Ext-->>Server: keeps tab list in sync
+  Server-->>Phone: updates the UI
 ```
+
+## Install the extension
+
+1. Open `chrome://extensions`
+2. Enable **Developer mode** (top right)
+3. Click **Load unpacked**
+4. Select the `audio-bonanza-extension` folder
 
 ## Roadmap
 
-Planned features and ideas are tracked in [issues](../../issues).
+Ideas and planned features are tracked in [issues](../../issues).
