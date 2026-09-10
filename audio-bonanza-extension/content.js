@@ -79,14 +79,24 @@
   const audioContext = new AudioContext();
   globalThis.__audioRemixStore.audioContext = audioContext;
 
+  // ponytail: injected via executeScript (no page activation), so the AudioContext
+  // starts suspended and createMediaElementSource has already stolen the native
+  // output -> "silent but playing". Resume on any user gesture and on media play;
+  // only stop listening once it's actually running.
+  const RESUME_EVENTS = ["click", "pointerdown", "keydown", "touchstart", "play"];
   function resumeAudioContext() {
-    if (audioContext.state !== "running") {
-      audioContext.resume();
+    if (audioContext.state === "running") {
+      RESUME_EVENTS.forEach((e) =>
+        document.removeEventListener(e, resumeAudioContext, true),
+      );
+      return;
     }
-    document.removeEventListener("click", resumeAudioContext);
+    audioContext.resume().then(resumeAudioContext, () => {});
   }
-
-  document.addEventListener("click", resumeAudioContext);
+  RESUME_EVENTS.forEach((e) =>
+    document.addEventListener(e, resumeAudioContext, true),
+  );
+  resumeAudioContext();
 
   // Master gain routes all processed audio to the destination.
   const masterGain = audioContext.createGain();
@@ -342,6 +352,12 @@
         let sourceNode = null;
 
         try {
+          // ponytail: file:// media is not CORS-clean in Chrome, so
+          // createMediaElementSource silently outputs zeroes (no throw).
+          // Skip it and go straight to the captureStream fallback.
+          if (location.protocol === "file:") {
+            throw new Error("file:// — forcing captureStream");
+          }
           // Preferred: MediaElementSource exclusively routes audio through Web Audio,
           // preventing the native audio path from playing alongside the processed path.
           sourceNode = audioContext.createMediaElementSource(mediaElement);
